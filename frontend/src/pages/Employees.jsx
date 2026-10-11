@@ -20,7 +20,10 @@ import {
   ShieldAlert,
   Building,
   CreditCard,
-  Briefcase
+  Briefcase,
+  Wallet,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -40,6 +43,7 @@ export const Employees = () => {
   const [isDocModalOpen, setIsDocModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isDeptModalOpen, setIsDeptModalOpen] = useState(false);
+  const [formTab, setFormTab] = useState('personal');
 
   const [currentEmployee, setCurrentEmployee] = useState(null);
   const [employeeDocs, setEmployeeDocs] = useState([]);
@@ -159,6 +163,7 @@ export const Employees = () => {
       department_id: departments.length > 0 ? departments[0].id : '',
       designation_id: designations.length > 0 ? designations[0].id : ''
     });
+    setFormTab('personal');
     setIsFormModalOpen(true);
   };
 
@@ -176,15 +181,63 @@ export const Employees = () => {
       other_allowance: parseFloat(emp.other_allowance || 0),
       create_user_account: false
     });
+    setFormTab('personal');
     setIsFormModalOpen(true);
+  };
+
+  // Tab Wizard Helpers
+  const handleNextTab = () => {
+    if (formTab === 'personal') {
+      if (!formData.first_name?.trim() || !formData.last_name?.trim()) {
+        showToast('Required', 'Please enter First Name and Last Name to proceed.', 'warning');
+        return;
+      }
+      setFormTab('identity');
+    } else if (formTab === 'identity') {
+      if (!formData.cpr_no?.trim()) {
+        showToast('Required', 'Please enter CPR / National ID to proceed.', 'warning');
+        return;
+      }
+      setFormTab('employment');
+    } else if (formTab === 'employment') {
+      if (!formData.date_of_joining) {
+        showToast('Required', 'Please enter Date of Joining to proceed.', 'warning');
+        return;
+      }
+      setFormTab('salary');
+    }
+  };
+
+  const handlePrevTab = () => {
+    if (formTab === 'salary') setFormTab('employment');
+    else if (formTab === 'employment') setFormTab('identity');
+    else if (formTab === 'identity') setFormTab('personal');
+  };
+
+  const getNextTabLabel = () => {
+    if (formTab === 'personal') return 'Identity';
+    if (formTab === 'identity') return 'Employment';
+    if (formTab === 'employment') return 'Salary';
+    return '';
   };
 
   // Submit Onboarding / Update Form
   const handleSubmitForm = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     try {
-      if (!formData.first_name || !formData.last_name || !formData.cpr_no) {
-        showToast('Validation Error', 'First Name, Last Name, and CPR/National ID are mandatory.', 'error');
+      if (!formData.first_name?.trim() || !formData.last_name?.trim()) {
+        setFormTab('personal');
+        showToast('Validation Error', 'First Name and Last Name are mandatory.', 'warning');
+        return;
+      }
+      if (!formData.cpr_no?.trim()) {
+        setFormTab('identity');
+        showToast('Validation Error', 'CPR / National ID Number is mandatory.', 'warning');
+        return;
+      }
+      if (!formData.date_of_joining) {
+        setFormTab('employment');
+        showToast('Validation Error', 'Date of Joining is mandatory.', 'warning');
         return;
       }
 
@@ -546,217 +599,403 @@ export const Employees = () => {
         title={currentEmployee ? `Edit Employee Details: ${currentEmployee.first_name} ${currentEmployee.last_name}` : 'Onboard New Employee (Bahrain / Gulf Compliant)'}
         size="lg"
         footer={
-          <>
-            <button className="btn btn-secondary" onClick={() => setIsFormModalOpen(false)}>Cancel</button>
-            <button className="btn btn-primary" onClick={handleSubmitForm}>
-              {currentEmployee ? 'Save Changes' : 'Complete Onboarding'}
+          <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <button type="button" className="btn btn-secondary" onClick={() => setIsFormModalOpen(false)}>
+              Cancel
             </button>
-          </>
+
+            <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+              {formTab !== 'personal' && (
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={handlePrevTab}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                >
+                  <ChevronLeft size={16} /> Previous
+                </button>
+              )}
+
+              {formTab !== 'salary' ? (
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={handleNextTab}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    color: '#4338ca',
+                    borderColor: '#c7d2fe',
+                    background: '#f5f3ff',
+                    fontWeight: 700
+                  }}
+                >
+                  Next: {getNextTabLabel()} <ChevronRight size={16} />
+                </button>
+              ) : null}
+
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleSubmitForm}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  fontWeight: 700
+                }}
+              >
+                <CheckCircle size={16} /> {currentEmployee ? 'Save Changes' : 'Complete Onboarding'}
+              </button>
+            </div>
+          </div>
         }
       >
-        <form onSubmit={handleSubmitForm}>
-          {/* Section 1: Basic Information */}
-          <div style={{ marginBottom: '1.25rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
-            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', fontSize: '1rem' }}>
-              <Users size={18} /> 1. Personal & Contact Details
-            </h4>
+        <form onSubmit={handleSubmitForm} noValidate>
+          {/* TAB NAVIGATION STRIP */}
+          <div
+            style={{
+              display: 'flex',
+              gap: '0.4rem',
+              background: '#f1f5f9',
+              padding: '0.35rem',
+              borderRadius: '12px',
+              marginBottom: '1.25rem',
+              border: '1px solid #e2e8f0',
+              overflowX: 'auto'
+            }}
+          >
+            {[
+              { id: 'personal', label: '1. Personal Details', icon: Users },
+              { id: 'identity', label: '2. Identity & Expiries', icon: CreditCard },
+              { id: 'employment', label: '3. Job & Joining', icon: Briefcase },
+              { id: 'salary', label: '4. Salary & Banking', icon: Wallet }
+            ].map((t) => {
+              const isActive = formTab === t.id;
+              const Icon = t.icon;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setFormTab(t.id)}
+                  style={{
+                    flex: '1 1 0',
+                    minWidth: '140px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.45rem',
+                    padding: '0.6rem 0.75rem',
+                    borderRadius: '8px',
+                    border: isActive ? '1px solid #c7d2fe' : '1px solid transparent',
+                    background: isActive ? '#ffffff' : 'transparent',
+                    color: isActive ? '#4338ca' : '#64748b',
+                    fontWeight: isActive ? 800 : 600,
+                    fontSize: '0.82rem',
+                    cursor: 'pointer',
+                    boxShadow: isActive ? '0 2px 6px rgba(99, 102, 241, 0.1)' : 'none',
+                    transition: 'all 0.18s ease'
+                  }}
+                >
+                  <Icon size={16} color={isActive ? '#6366f1' : '#64748b'} />
+                  <span>{t.label}</span>
+                </button>
+              );
+            })}
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label required">First Name</label>
-              <input type="text" name="first_name" className="form-control" required value={formData.first_name} onChange={handleChange} />
-            </div>
-            <div className="form-group">
-              <label className="form-label required">Last Name</label>
-              <input type="text" name="last_name" className="form-control" required value={formData.last_name} onChange={handleChange} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Employee Code</label>
-              <input type="text" name="emp_code" className="form-control" placeholder="Auto-generated if blank (e.g. EMP-006)" value={formData.emp_code} onChange={handleChange} />
-            </div>
-          </div>
+          {/* TAB 1: PERSONAL & CONTACT DETAILS */}
+          {formTab === 'personal' && (
+            <div style={{ animation: 'fadeIn 0.2s ease-out' }}>
+              <div style={{ marginBottom: '1.25rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
+                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', fontSize: '1rem', margin: 0 }}>
+                  <Users size={18} /> Personal Demographics &amp; Contact Details
+                </h4>
+                <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                  Enter core personal identity, contact information, and Gulf nationality status.
+                </p>
+              </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Email Address</label>
-              <input type="email" name="email" className="form-control" value={formData.email} onChange={handleChange} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Phone Number (Bahrain / Gulf)</label>
-              <input type="text" name="phone" className="form-control" placeholder="+973 3900 0000" value={formData.phone} onChange={handleChange} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Gender</label>
-              <select name="gender" className="form-control" value={formData.gender} onChange={handleChange}>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
-            </div>
-          </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label required">First Name</label>
+                  <input type="text" name="first_name" className="form-control" required value={formData.first_name} onChange={handleChange} placeholder="e.g. Ahmed" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label required">Last Name</label>
+                  <input type="text" name="last_name" className="form-control" required value={formData.last_name} onChange={handleChange} placeholder="e.g. Al-Hussaini" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Employee Code</label>
+                  <input type="text" name="emp_code" className="form-control" placeholder="Auto-generated if blank (e.g. EMP-006)" value={formData.emp_code} onChange={handleChange} />
+                </div>
+              </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Nationality</label>
-              <input type="text" name="nationality" className="form-control" placeholder="Bahraini, Indian, Filipino, Saudi, etc." value={formData.nationality} onChange={handleChange} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Citizen / GCC Status</label>
-              <select name="is_gcc_citizen" className="form-control" value={formData.is_gcc_citizen} onChange={handleChange}>
-                <option value={1}>Bahraini / GCC Citizen (GOSI Citizen Rate: {settings.gosi_citizen_emp_rate}%)</option>
-                <option value={0}>Expatriate (GOSI Expat Rate: {settings.gosi_expat_emp_rate}% + LMRA)</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Date of Birth</label>
-              <input type="date" name="dob" className="form-control" value={formData.dob || ''} onChange={handleChange} />
-            </div>
-          </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Email Address</label>
+                  <input type="email" name="email" className="form-control" placeholder="ahmed@company.com" value={formData.email} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Phone Number (Bahrain / Gulf)</label>
+                  <input type="text" name="phone" className="form-control" placeholder="+973 3900 0000" value={formData.phone} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Gender</label>
+                  <select name="gender" className="form-control" value={formData.gender} onChange={handleChange}>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
+                </div>
+              </div>
 
-          {/* Section 2: Identification & Document Expiry Tracking */}
-          <div style={{ margin: '1.25rem 0 0.75rem 0', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
-            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-gold)', fontSize: '1rem' }}>
-              <CreditCard size={18} /> 2. Identification Numbers & Expiry Dates (Auto-Reminders)
-            </h4>
-          </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Nationality</label>
+                  <input type="text" name="nationality" className="form-control" placeholder="Bahraini, Indian, Filipino, Saudi, etc." value={formData.nationality} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Citizen / GCC Status</label>
+                  <select name="is_gcc_citizen" className="form-control" value={formData.is_gcc_citizen} onChange={handleChange}>
+                    <option value={1}>Bahraini / GCC Citizen (GOSI Citizen Rate: {settings.gosi_citizen_emp_rate}%)</option>
+                    <option value={0}>Expatriate (GOSI Expat Rate: {settings.gosi_expat_emp_rate}% + LMRA)</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Date of Birth</label>
+                  <input type="date" name="dob" className="form-control" value={formData.dob || ''} onChange={handleChange} />
+                </div>
+              </div>
+            </div>
+          )}
 
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label required">CPR / National ID No</label>
-              <input type="text" name="cpr_no" className="form-control" required placeholder="e.g. 880415982" value={formData.cpr_no} onChange={handleChange} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">CPR Expiry Date</label>
-              <input type="date" name="cpr_expiry" className="form-control" value={formData.cpr_expiry || ''} onChange={handleChange} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">GOSI Number</label>
-              <input type="text" name="gosi_no" className="form-control" placeholder="GOSI-984210" value={formData.gosi_no} onChange={handleChange} />
-            </div>
-          </div>
+          {/* TAB 2: IDENTIFICATION & DOCUMENT EXPIRIES */}
+          {formTab === 'identity' && (
+            <div style={{ animation: 'fadeIn 0.2s ease-out' }}>
+              <div style={{ marginBottom: '1.25rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
+                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-gold)', fontSize: '1rem', margin: 0 }}>
+                  <CreditCard size={18} /> Official Identification &amp; Document Expiry Tracking
+                </h4>
+                <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                  All expiry dates are synchronized with automatic 60-day dashboard notifications and audit compliance.
+                </p>
+              </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Passport Number</label>
-              <input type="text" name="passport_no" className="form-control" placeholder="Passport Booklet No" value={formData.passport_no} onChange={handleChange} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Passport Expiry Date</label>
-              <input type="date" name="passport_expiry" className="form-control" value={formData.passport_expiry || ''} onChange={handleChange} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">LMRA Number / Work Permit</label>
-              <input type="text" name="lmra_no" className="form-control" placeholder="LMRA Permit No" value={formData.lmra_no} onChange={handleChange} />
-            </div>
-          </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label required">CPR / National ID No</label>
+                  <input type="text" name="cpr_no" className="form-control" required placeholder="e.g. 880415982" value={formData.cpr_no} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">CPR Expiry Date</label>
+                  <input type="date" name="cpr_expiry" className="form-control" value={formData.cpr_expiry || ''} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">GOSI Number</label>
+                  <input type="text" name="gosi_no" className="form-control" placeholder="GOSI-984210" value={formData.gosi_no} onChange={handleChange} />
+                </div>
+              </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Visa / Residence Permit No</label>
-              <input type="text" name="visa_no" className="form-control" placeholder="Residence Sticker / EVisa" value={formData.visa_no} onChange={handleChange} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Visa Expiry Date</label>
-              <input type="date" name="visa_expiry" className="form-control" value={formData.visa_expiry || ''} onChange={handleChange} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Driving License Expiry</label>
-              <input type="date" name="driving_license_expiry" className="form-control" value={formData.driving_license_expiry || ''} onChange={handleChange} />
-            </div>
-          </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Passport Number</label>
+                  <input type="text" name="passport_no" className="form-control" placeholder="Passport Booklet No" value={formData.passport_no} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Passport Expiry Date</label>
+                  <input type="date" name="passport_expiry" className="form-control" value={formData.passport_expiry || ''} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">LMRA Number / Work Permit</label>
+                  <input type="text" name="lmra_no" className="form-control" placeholder="LMRA Permit No" value={formData.lmra_no} onChange={handleChange} />
+                </div>
+              </div>
 
-          {/* Section 3: Employment & Position */}
-          <div style={{ margin: '1.25rem 0 0.75rem 0', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
-            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', fontSize: '1rem' }}>
-              <Briefcase size={18} /> 3. Department, Designation & Joining
-            </h4>
-          </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Visa / Residence Permit No</label>
+                  <input type="text" name="visa_no" className="form-control" placeholder="Residence Sticker / EVisa" value={formData.visa_no} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Visa Expiry Date</label>
+                  <input type="date" name="visa_expiry" className="form-control" value={formData.visa_expiry || ''} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Driving License Expiry</label>
+                  <input type="date" name="driving_license_expiry" className="form-control" value={formData.driving_license_expiry || ''} onChange={handleChange} />
+                </div>
+              </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Department</label>
-              <select name="department_id" className="form-control" value={formData.department_id} onChange={handleChange}>
-                <option value="">Select Department</option>
-                {departments.map((d) => (
-                  <option key={d.id} value={d.id}>{d.name}</option>
-                ))}
-              </select>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Driving License No</label>
+                  <input type="text" name="driving_license_no" className="form-control" placeholder="e.g. DL-983142" value={formData.driving_license_no || ''} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Health Insurance Card No</label>
+                  <input type="text" name="insurance_no" className="form-control" placeholder="Policy / Member ID" value={formData.insurance_no || ''} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Insurance Expiry Date</label>
+                  <input type="date" name="insurance_expiry" className="form-control" value={formData.insurance_expiry || ''} onChange={handleChange} />
+                </div>
+              </div>
             </div>
-            <div className="form-group">
-              <label className="form-label">Designation</label>
-              <select name="designation_id" className="form-control" value={formData.designation_id} onChange={handleChange}>
-                <option value="">Select Designation</option>
-                {designations.map((des) => (
-                  <option key={des.id} value={des.id}>{des.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Date of Joining</label>
-              <input type="date" name="date_of_joining" className="form-control" required value={formData.date_of_joining} onChange={handleChange} />
-            </div>
-          </div>
+          )}
 
-          {/* Section 4: Bahrain Salary Structure & Gulf Allowances */}
-          <div style={{ margin: '1.25rem 0 0.75rem 0', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
-            <h4 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--success)', fontSize: '1rem' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <CreditCard size={18} /> 4. Salary Structure ({settings.currency || 'BHD'})
-              </span>
-              <span style={{ fontSize: '0.9rem', color: 'var(--primary)', fontWeight: 800 }}>
-                Total Gross: {formatCurrency(calculateGross(formData))}
-              </span>
-            </h4>
-          </div>
+          {/* TAB 3: JOB & EMPLOYMENT */}
+          {formTab === 'employment' && (
+            <div style={{ animation: 'fadeIn 0.2s ease-out' }}>
+              <div style={{ marginBottom: '1.25rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
+                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', fontSize: '1rem', margin: 0 }}>
+                  <Briefcase size={18} /> Department, Designation &amp; Employment Terms
+                </h4>
+                <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                  Assign the employee to their operational department, job title, and employment status.
+                </p>
+              </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label required">Basic Salary ({settings.currency})</label>
-              <input type="number" step="0.001" name="basic_salary" className="form-control" required value={formData.basic_salary} onChange={handleChange} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Housing Allowance (HR)</label>
-              <input type="number" step="0.001" name="housing_allowance" className="form-control" value={formData.housing_allowance} onChange={handleChange} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Transport Allowance</label>
-              <input type="number" step="0.001" name="transport_allowance" className="form-control" value={formData.transport_allowance} onChange={handleChange} />
-            </div>
-          </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Department</label>
+                  <select name="department_id" className="form-control" value={formData.department_id} onChange={handleChange}>
+                    <option value="">Select Department</option>
+                    {departments.map((d) => (
+                      <option key={d.id} value={d.id}>{d.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Designation</label>
+                  <select name="designation_id" className="form-control" value={formData.designation_id} onChange={handleChange}>
+                    <option value="">Select Designation</option>
+                    {designations.map((des) => (
+                      <option key={des.id} value={des.id}>{des.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label required">Date of Joining</label>
+                  <input type="date" name="date_of_joining" className="form-control" required value={formData.date_of_joining} onChange={handleChange} />
+                </div>
+              </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Car Allowance</label>
-              <input type="number" step="0.001" name="car_allowance" className="form-control" value={formData.car_allowance} onChange={handleChange} />
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Employment Type</label>
+                  <select name="employment_type" className="form-control" value={formData.employment_type || 'Full-Time'} onChange={handleChange}>
+                    <option value="Full-Time">Full-Time (Standard 48 hrs/week)</option>
+                    <option value="Part-Time">Part-Time</option>
+                    <option value="Contract">Fixed-Term Contract</option>
+                    <option value="Probation">Probationary Period</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Employment Status</label>
+                  <select name="status" className="form-control" value={formData.status || 'Active'} onChange={handleChange}>
+                    <option value="Active">Active</option>
+                    <option value="On Leave">On Leave</option>
+                    <option value="Resigned">Resigned</option>
+                    <option value="Terminated">Terminated</option>
+                  </select>
+                </div>
+              </div>
             </div>
-            <div className="form-group">
-              <label className="form-label">Mobile Phone Allowance</label>
-              <input type="number" step="0.001" name="mobile_allowance" className="form-control" value={formData.mobile_allowance} onChange={handleChange} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Food Allowance</label>
-              <input type="number" step="0.001" name="food_allowance" className="form-control" value={formData.food_allowance} onChange={handleChange} />
-            </div>
-          </div>
+          )}
 
-          {/* Section 5: Banking & Portal Login */}
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Bank Name</label>
-              <input type="text" name="bank_name" className="form-control" placeholder="NBB, BBK, AUB, etc." value={formData.bank_name} onChange={handleChange} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">IBAN Number</label>
-              <input type="text" name="iban" className="form-control" placeholder="BH29NBOB..." value={formData.iban} onChange={handleChange} />
-            </div>
-          </div>
+          {/* TAB 4: SALARY & BANKING */}
+          {formTab === 'salary' && (
+            <div style={{ animation: 'fadeIn 0.2s ease-out' }}>
+              <div style={{ marginBottom: '1.25rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <div>
+                    <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--success)', fontSize: '1rem', margin: 0 }}>
+                      <Wallet size={18} /> Bahrain Wage Protection System (WPS) &amp; Salary Structure
+                    </h4>
+                    <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                      Define basic salary and allowances. Cumulative gross is used for GOSI and WPS calculations.
+                    </p>
+                  </div>
+                  <div
+                    style={{
+                      background: 'linear-gradient(135deg, #ecfdf5 0%, #eff6ff 100%)',
+                      border: '1px solid #6ee7b7',
+                      borderRadius: '8px',
+                      padding: '0.45rem 0.85rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}
+                  >
+                    <span style={{ fontSize: '0.78rem', color: '#065f46', fontWeight: 700 }}>Total Monthly Gross:</span>
+                    <span style={{ fontSize: '1.05rem', color: '#1e40af', fontWeight: 900 }}>
+                      {formatCurrency(calculateGross(formData))}
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-          {!currentEmployee && (
-            <div style={{ marginTop: '1rem', padding: '0.85rem', background: '#f8fafc', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>
-                <input type="checkbox" name="create_user_account" checked={formData.create_user_account} onChange={handleChange} />
-                <span>Create employee self-service login account (Username will be Employee Code)</span>
-              </label>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label required">Basic Salary ({settings.currency || 'BHD'})</label>
+                  <input type="number" step="0.001" name="basic_salary" className="form-control" required value={formData.basic_salary} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Housing Allowance (HR)</label>
+                  <input type="number" step="0.001" name="housing_allowance" className="form-control" value={formData.housing_allowance} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Transport Allowance</label>
+                  <input type="number" step="0.001" name="transport_allowance" className="form-control" value={formData.transport_allowance} onChange={handleChange} />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Car Allowance</label>
+                  <input type="number" step="0.001" name="car_allowance" className="form-control" value={formData.car_allowance} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Mobile Phone Allowance</label>
+                  <input type="number" step="0.001" name="mobile_allowance" className="form-control" value={formData.mobile_allowance} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Food Allowance</label>
+                  <input type="number" step="0.001" name="food_allowance" className="form-control" value={formData.food_allowance} onChange={handleChange} />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Other Allowance</label>
+                  <input type="number" step="0.001" name="other_allowance" className="form-control" value={formData.other_allowance || 0} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Bank Name (Bahrain)</label>
+                  <input type="text" name="bank_name" className="form-control" placeholder="NBB, BBK, AUB, BisB, Ila Bank, etc." value={formData.bank_name} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">IBAN Number (WPS Compliant)</label>
+                  <input type="text" name="iban" className="form-control" placeholder="BH29NBOB0000..." value={formData.iban} onChange={handleChange} />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Bank Account Number (Optional)</label>
+                  <input type="text" name="bank_account_no" className="form-control" placeholder="Local Account Number" value={formData.bank_account_no || ''} onChange={handleChange} />
+                </div>
+              </div>
+
+              {!currentEmployee && (
+                <div style={{ marginTop: '1rem', padding: '0.85rem', background: '#f8fafc', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>
+                    <input type="checkbox" name="create_user_account" checked={formData.create_user_account} onChange={handleChange} />
+                    <span>Create employee self-service login account (Username will be Employee Code, Default Password: password123)</span>
+                  </label>
+                </div>
+              )}
             </div>
           )}
         </form>
