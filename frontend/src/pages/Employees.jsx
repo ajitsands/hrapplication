@@ -23,9 +23,14 @@ import {
   Briefcase,
   Wallet,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Camera,
+  Cpu,
+  Sparkles,
+  RefreshCw
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { smartCardService } from '../services/smartCardReader';
 
 export const Employees = () => {
   const { formatCurrency, formatDate, showToast, confirmAction, settings } = useAuth();
@@ -44,6 +49,10 @@ export const Employees = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isDeptModalOpen, setIsDeptModalOpen] = useState(false);
   const [formTab, setFormTab] = useState('personal');
+
+  // Card Reader State
+  const [isReadingCard, setIsReadingCard] = useState(false);
+  const [bridgeStatus, setBridgeStatus] = useState(null);
 
   const [currentEmployee, setCurrentEmployee] = useState(null);
   const [employeeDocs, setEmployeeDocs] = useState([]);
@@ -88,7 +97,10 @@ export const Employees = () => {
     iban: '',
     bank_account_no: '',
     create_user_account: true,
-    user_password: 'password123'
+    user_password: 'password123',
+    profile_photo: '',
+    address: '',
+    blood_group: 'O+'
   };
 
   const [formData, setFormData] = useState(initialForm);
@@ -155,8 +167,20 @@ export const Employees = () => {
     );
   };
 
+  // Check Bridge Health periodically or when modal opens
+  const checkCardBridge = async () => {
+    try {
+      const res = await smartCardService.checkBridgeHealth();
+      setBridgeStatus(res);
+      return res;
+    } catch (_) {
+      setBridgeStatus({ online: false, reader: '', cardInserted: false });
+      return { online: false };
+    }
+  };
+
   // Open Onboard Modal
-  const openOnboardModal = () => {
+  const openOnboardModal = async () => {
     setCurrentEmployee(null);
     setFormData({
       ...initialForm,
@@ -165,6 +189,7 @@ export const Employees = () => {
     });
     setFormTab('personal');
     setIsFormModalOpen(true);
+    checkCardBridge();
   };
 
   // Open Edit Modal
@@ -179,10 +204,71 @@ export const Employees = () => {
       mobile_allowance: parseFloat(emp.mobile_allowance || 0),
       food_allowance: parseFloat(emp.food_allowance || 0),
       other_allowance: parseFloat(emp.other_allowance || 0),
+      profile_photo: emp.profile_photo || '',
+      address: emp.address || '',
+      blood_group: emp.blood_group || 'O+',
       create_user_account: false
     });
     setFormTab('personal');
     setIsFormModalOpen(true);
+    checkCardBridge();
+  };
+
+  // Read CPR Card (Hardware or Simulator)
+  const handleReadCprCard = async (isSim = false, preset = 0) => {
+    setIsReadingCard(true);
+    try {
+      let cardData;
+      if (isSim) {
+        showToast('Testing CPR Simulator', 'Loading simulated Bahrain/GCC smart card preset...', 'info');
+        cardData = await smartCardService.simulateCardRead(preset);
+      } else {
+        showToast('Connecting to Smart Card Reader', 'Querying USB Smart Card Reader via Bridge (Port 5050)...', 'info');
+        cardData = await smartCardService.readSmartCard();
+      }
+
+      if (!cardData || (!cardData.cpr_no && !cardData.first_name && !cardData.full_name_en)) {
+        throw new Error('No employee information detected on inserted CPR card.');
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        first_name: cardData.first_name || prev.first_name,
+        last_name: cardData.last_name || prev.last_name,
+        cpr_no: cardData.cpr_no || prev.cpr_no,
+        cpr_expiry: cardData.cpr_expiry || prev.cpr_expiry,
+        dob: cardData.dob || prev.dob,
+        gender: cardData.gender || prev.gender,
+        nationality: cardData.nationality || prev.nationality,
+        is_gcc_citizen: typeof cardData.is_gcc_citizen === 'number' ? cardData.is_gcc_citizen : prev.is_gcc_citizen,
+        passport_no: cardData.passport_no || prev.passport_no,
+        phone: cardData.phone || prev.phone,
+        email: cardData.email || prev.email,
+        address: cardData.address || prev.address,
+        blood_group: cardData.blood_group || prev.blood_group,
+        profile_photo: cardData.profile_photo || prev.profile_photo
+      }));
+
+      setFormTab('personal');
+      confetti({ particleCount: 40, spread: 60, origin: { y: 0.6 } });
+      showToast(
+        'CPR Card Read Successfully!',
+        `Populated: ${cardData.first_name} ${cardData.last_name} (CPR: ${cardData.cpr_no}) with biometric photograph.`,
+        'success',
+        6000
+      );
+    } catch (err) {
+      console.error('CPR Card Read Error:', err);
+      showToast(
+        'Card Reader Notice',
+        err.message || 'Unable to read CPR card. Please verify Start_Bahrain_Card_Bridge.bat is running on Port 5050 and the USB card reader is plugged in.',
+        'error',
+        7000
+      );
+    } finally {
+      setIsReadingCard(false);
+      checkCardBridge();
+    }
   };
 
   // Tab Wizard Helpers
@@ -399,19 +485,30 @@ export const Employees = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
           <div
             style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: 'var(--radius-md)',
+              width: '38px',
+              height: '38px',
+              borderRadius: '10px',
+              overflow: 'hidden',
               background: row.is_gcc_citizen ? 'var(--accent-gold-light)' : 'var(--primary-light)',
               color: row.is_gcc_citizen ? 'var(--accent-gold)' : 'var(--primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 800,
-              fontSize: '0.85rem'
+              fontSize: '0.85rem',
+              flexShrink: 0,
+              border: row.profile_photo ? '1px solid #cbd5e1' : 'none'
             }}
           >
-            {row.first_name[0]}{row.last_name[0]}
+            {row.profile_photo ? (
+              <img
+                src={row.profile_photo}
+                alt={row.first_name}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : (
+              `${row.first_name?.[0] || ''}${row.last_name?.[0] || ''}`
+            )}
           </div>
           <div>
             <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -653,6 +750,117 @@ export const Employees = () => {
         }
       >
         <form onSubmit={handleSubmitForm} noValidate>
+          {/* BAHRAIN CPR & GCC CARD READER INTEGRATION BANNER */}
+          <div
+            style={{
+              background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
+              border: '1px solid #4338ca',
+              borderRadius: '14px',
+              padding: '0.85rem 1.15rem',
+              marginBottom: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '1rem',
+              flexWrap: 'wrap',
+              boxShadow: '0 4px 15px rgba(67, 56, 202, 0.2)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, #38bdf8, #818cf8)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(56, 189, 248, 0.4)',
+                  flexShrink: 0
+                }}
+              >
+                <Cpu size={20} color="#ffffff" />
+              </div>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <span style={{ color: '#ffffff', fontWeight: 800, fontSize: '0.9rem', letterSpacing: '0.2px' }}>
+                    Bahrain CPR &amp; GCC Smart Card Reader
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '0.68rem',
+                      padding: '0.15rem 0.5rem',
+                      borderRadius: '9999px',
+                      background: bridgeStatus?.online ? 'rgba(16, 185, 129, 0.2)' : 'rgba(234, 179, 8, 0.2)',
+                      color: bridgeStatus?.online ? '#34d399' : '#fde047',
+                      border: `1px solid ${bridgeStatus?.online ? 'rgba(16, 185, 129, 0.4)' : 'rgba(234, 179, 8, 0.4)'}`,
+                      fontWeight: 700
+                    }}
+                  >
+                    {bridgeStatus?.online
+                      ? `● Bridge Ready (Port 5050)${bridgeStatus.reader ? `: ${bridgeStatus.reader}` : ''}`
+                      : '● Bridge Port 5050'}
+                  </span>
+                </div>
+                <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginTop: '0.15rem' }}>
+                  Reads 2025/2026 (Back Chip) &amp; Legacy CPR cards via USB, auto-populating employee demographics &amp; photograph.
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => handleReadCprCard(false)}
+                disabled={isReadingCard}
+                style={{
+                  background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+                  border: 'none',
+                  color: '#ffffff',
+                  fontWeight: 800,
+                  fontSize: '0.82rem',
+                  padding: '0.55rem 1rem',
+                  borderRadius: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.35)',
+                  cursor: isReadingCard ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {isReadingCard ? (
+                  <>
+                    <RefreshCw size={15} style={{ animation: 'spin 1s linear infinite' }} /> Reading USB Card...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard size={15} /> ⚡ Read CPR Card
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => handleReadCprCard(true, Math.floor(Math.random() * 4))}
+                disabled={isReadingCard}
+                title="Test with Simulated CPR Card Preset"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  color: '#e2e8f0',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  fontSize: '0.78rem',
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: '10px'
+                }}
+              >
+                <Sparkles size={13} color="#facc15" /> Test Simulator
+              </button>
+            </div>
+          </div>
+
           {/* TAB NAVIGATION STRIP */}
           <div
             style={{
@@ -710,11 +918,126 @@ export const Employees = () => {
             <div style={{ animation: 'fadeIn 0.2s ease-out' }}>
               <div style={{ marginBottom: '1.25rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
                 <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', fontSize: '1rem', margin: 0 }}>
-                  <Users size={18} /> Personal Demographics &amp; Contact Details
+                  <Users size={18} /> Personal Demographics &amp; Biometric Photo
                 </h4>
                 <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                  Enter core personal identity, contact information, and Gulf nationality status.
+                  Enter core personal identity, photograph, contact information, and Gulf nationality status.
                 </p>
+              </div>
+
+              {/* EMPLOYEE BIOMETRIC PHOTO CARD */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '1.25rem',
+                  padding: '1rem',
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '12px',
+                  marginBottom: '1.25rem',
+                  flexWrap: 'wrap'
+                }}
+              >
+                <div
+                  style={{
+                    position: 'relative',
+                    width: '84px',
+                    height: '84px',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    background: '#e2e8f0',
+                    border: '2px solid #cbd5e1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                    flexShrink: 0
+                  }}
+                >
+                  {formData.profile_photo ? (
+                    <img
+                      src={formData.profile_photo}
+                      alt="Employee Avatar"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#94a3b8' }}>
+                      <Camera size={28} />
+                      <span style={{ fontSize: '0.65rem', marginTop: '2px' }}>No Photo</span>
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ flex: 1, minWidth: '220px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                    <strong style={{ fontSize: '0.9rem', color: '#0f172a' }}>Employee Biometric Photograph</strong>
+                    {formData.profile_photo && (
+                      <span
+                        style={{
+                          background: '#ecfdf5',
+                          color: '#047857',
+                          border: '1px solid #a7f3d0',
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          padding: '0.15rem 0.5rem',
+                          borderRadius: '9999px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.25rem'
+                        }}
+                      >
+                        <CheckCircle size={11} /> Photo Attached
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ margin: '0 0 0.5rem', fontSize: '0.78rem', color: '#64748b' }}>
+                    Photo is extracted automatically from Bahrain CPR / GCC chip via the USB card reader, or you can attach a file.
+                  </p>
+
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <label
+                      className="btn btn-secondary btn-sm"
+                      style={{
+                        cursor: 'pointer',
+                        fontSize: '0.75rem',
+                        padding: '0.35rem 0.65rem',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.35rem'
+                      }}
+                    >
+                      <Upload size={13} /> {formData.profile_photo ? 'Change Photo' : 'Upload Photo'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (re) => {
+                              setFormData((prev) => ({ ...prev, profile_photo: re.target?.result }));
+                              showToast('Success', 'Profile photo attached!', 'success');
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+
+                    {formData.profile_photo && (
+                      <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        style={{ fontSize: '0.75rem', padding: '0.35rem 0.65rem', color: '#ef4444', borderColor: '#fca5a5' }}
+                        onClick={() => setFormData((prev) => ({ ...prev, profile_photo: '' }))}
+                      >
+                        Remove Photo
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div className="form-row">
@@ -765,6 +1088,33 @@ export const Employees = () => {
                 <div className="form-group">
                   <label className="form-label">Date of Birth</label>
                   <input type="date" name="dob" className="form-control" value={formData.dob || ''} onChange={handleChange} />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group" style={{ maxWidth: '180px' }}>
+                  <label className="form-label">Blood Group</label>
+                  <select name="blood_group" className="form-control" value={formData.blood_group || 'O+'} onChange={handleChange}>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                  </select>
+                </div>
+                <div className="form-group" style={{ flex: 2 }}>
+                  <label className="form-label">Residential Address (Kingdom of Bahrain)</label>
+                  <input
+                    type="text"
+                    name="address"
+                    className="form-control"
+                    placeholder="Bldg / Villa, Road, Block, Area (Extracted from CPR)"
+                    value={formData.address || ''}
+                    onChange={handleChange}
+                  />
                 </div>
               </div>
             </div>
@@ -1151,11 +1501,36 @@ export const Employees = () => {
         {currentEmployee && (
           <div>
             <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', background: '#f8fafc', padding: '1.25rem', borderRadius: 'var(--radius-md)', marginBottom: '1.25rem' }}>
-              <div style={{ width: '56px', height: '56px', borderRadius: 'var(--radius-lg)', background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 800 }}>
-                {currentEmployee.first_name[0]}{currentEmployee.last_name[0]}
+              <div
+                style={{
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '14px',
+                  overflow: 'hidden',
+                  background: 'var(--primary)',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.5rem',
+                  fontWeight: 800,
+                  flexShrink: 0,
+                  border: currentEmployee.profile_photo ? '2px solid #cbd5e1' : 'none',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                }}
+              >
+                {currentEmployee.profile_photo ? (
+                  <img
+                    src={currentEmployee.profile_photo}
+                    alt={currentEmployee.first_name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  `${currentEmployee.first_name?.[0] || ''}${currentEmployee.last_name?.[0] || ''}`
+                )}
               </div>
               <div>
-                <h3 style={{ fontSize: '1.25rem', color: 'var(--text-primary)' }}>
+                <h3 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', margin: '0 0 0.25rem' }}>
                   {currentEmployee.first_name} {currentEmployee.last_name}
                 </h3>
                 <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
@@ -1166,16 +1541,18 @@ export const Employees = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.85rem' }}>
               <div style={{ border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '1rem' }}>
-                <h4 style={{ color: 'var(--primary)', marginBottom: '0.5rem', fontWeight: 700 }}>Gulf Identification</h4>
+                <h4 style={{ color: 'var(--primary)', marginBottom: '0.5rem', fontWeight: 700 }}>Gulf Identification &amp; Bio</h4>
                 <p><strong>CPR / National ID:</strong> {currentEmployee.cpr_no} (Exp: {formatDate(currentEmployee.cpr_expiry)})</p>
                 <p><strong>Passport No:</strong> {currentEmployee.passport_no || 'N/A'} (Exp: {formatDate(currentEmployee.passport_expiry)})</p>
                 <p><strong>LMRA Visa No:</strong> {currentEmployee.visa_no || 'N/A'} (Exp: {formatDate(currentEmployee.visa_expiry)})</p>
                 <p><strong>GOSI Reg No:</strong> {currentEmployee.gosi_no || 'N/A'}</p>
                 <p><strong>Nationality:</strong> {currentEmployee.nationality} ({currentEmployee.is_gcc_citizen ? 'GCC Citizen' : 'Expat'})</p>
+                <p><strong>Blood Group:</strong> {currentEmployee.blood_group || 'O+'}</p>
+                <p><strong>Address:</strong> {currentEmployee.address || 'Kingdom of Bahrain'}</p>
               </div>
 
               <div style={{ border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '1rem' }}>
-                <h4 style={{ color: 'var(--success)', marginBottom: '0.5rem', fontWeight: 700 }}>Salary & Bank Structure</h4>
+                <h4 style={{ color: 'var(--success)', marginBottom: '0.5rem', fontWeight: 700 }}>Salary &amp; Bank Structure</h4>
                 <p><strong>Basic Salary:</strong> {formatCurrency(currentEmployee.basic_salary)}</p>
                 <p><strong>Housing Allowance:</strong> {formatCurrency(currentEmployee.housing_allowance)}</p>
                 <p><strong>Transport Allowance:</strong> {formatCurrency(currentEmployee.transport_allowance)}</p>

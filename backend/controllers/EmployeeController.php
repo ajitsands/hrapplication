@@ -67,20 +67,46 @@ class EmployeeController extends Controller {
             $empCode = sprintf("EMP-%03d", $nextId);
         }
         
+        // Process profile photo if base64 provided
+        $profilePhoto = !empty($data['profile_photo']) ? $data['profile_photo'] : null;
+        if ($profilePhoto && str_starts_with($profilePhoto, 'data:image')) {
+            try {
+                $uploadDir = __DIR__ . '/../public/uploads/employees';
+                if (!is_dir($uploadDir)) {
+                    @mkdir($uploadDir, 0777, true);
+                }
+                if (preg_match('/^data:image\/(\w+);base64,/', $profilePhoto, $type)) {
+                    $rawImg = substr($profilePhoto, strpos($profilePhoto, ',') + 1);
+                    $decoded = base64_decode($rawImg);
+                    if ($decoded !== false) {
+                        $ext = strtolower($type[1]) === 'png' ? 'png' : 'jpg';
+                        $cleanCpr = preg_replace('/[^0-9A-Za-z]/', '', $data['cpr_no'] ?? 'emp');
+                        $filename = 'emp_' . $cleanCpr . '_' . time() . '.' . $ext;
+                        $targetPath = $uploadDir . '/' . $filename;
+                        if (@file_put_contents($targetPath, $decoded)) {
+                            $profilePhoto = '/uploads/employees/' . $filename;
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                // Fallback to retaining base64 string
+            }
+        }
+
         $sql = "INSERT INTO employees (
             emp_code, first_name, last_name, email, phone, gender, dob, nationality, is_gcc_citizen,
             cpr_no, cpr_expiry, passport_no, passport_expiry, visa_no, visa_expiry,
             driving_license_no, driving_license_expiry, insurance_no, insurance_expiry, gosi_no, lmra_no,
             department_id, designation_id, date_of_joining, employment_type, status,
             basic_salary, housing_allowance, transport_allowance, car_allowance, mobile_allowance, food_allowance, other_allowance,
-            bank_name, iban, bank_account_no
+            bank_name, iban, bank_account_no, profile_photo, address, blood_group
         ) VALUES (
             :emp_code, :first_name, :last_name, :email, :phone, :gender, :dob, :nationality, :is_gcc_citizen,
             :cpr_no, :cpr_expiry, :passport_no, :passport_expiry, :visa_no, :visa_expiry,
             :driving_license_no, :driving_license_expiry, :insurance_no, :insurance_expiry, :gosi_no, :lmra_no,
             :department_id, :designation_id, :date_of_joining, :employment_type, :status,
             :basic_salary, :housing_allowance, :transport_allowance, :car_allowance, :mobile_allowance, :food_allowance, :other_allowance,
-            :bank_name, :iban, :bank_account_no
+            :bank_name, :iban, :bank_account_no, :profile_photo, :address, :blood_group
         )";
         
         $stmt = $db->prepare($sql);
@@ -121,6 +147,9 @@ class EmployeeController extends Controller {
             'bank_name' => $data['bank_name'] ?? null,
             'iban' => $data['iban'] ?? null,
             'bank_account_no' => $data['bank_account_no'] ?? null,
+            'profile_photo' => $profilePhoto,
+            'address' => $data['address'] ?? null,
+            'blood_group' => $data['blood_group'] ?? null,
         ]);
         
         $newId = (int)$db->lastInsertId();
@@ -136,7 +165,7 @@ class EmployeeController extends Controller {
             $userStmt->execute([$newId, $username, $userEmail, $passHash]);
         }
         
-        $this->successResponse(['id' => $newId, 'emp_code' => $empCode], 'Employee created and onboarded successfully!', 201);
+        $this->successResponse(['id' => $newId, 'emp_code' => $empCode, 'profile_photo' => $profilePhoto], 'Employee created and onboarded successfully!', 201);
     }
     
     public function update(array $params): void {
@@ -148,6 +177,29 @@ class EmployeeController extends Controller {
             $this->errorResponse('Employee not found', 404);
         }
         
+        // Process profile photo if base64 updated
+        if (!empty($data['profile_photo']) && str_starts_with($data['profile_photo'], 'data:image')) {
+            try {
+                $uploadDir = __DIR__ . '/../public/uploads/employees';
+                if (!is_dir($uploadDir)) {
+                    @mkdir($uploadDir, 0777, true);
+                }
+                if (preg_match('/^data:image\/(\w+);base64,/', $data['profile_photo'], $type)) {
+                    $rawImg = substr($data['profile_photo'], strpos($data['profile_photo'], ',') + 1);
+                    $decoded = base64_decode($rawImg);
+                    if ($decoded !== false) {
+                        $ext = strtolower($type[1]) === 'png' ? 'png' : 'jpg';
+                        $cleanCpr = preg_replace('/[^0-9A-Za-z]/', '', $existing['cpr_no'] ?? 'emp');
+                        $filename = 'emp_' . $cleanCpr . '_' . time() . '.' . $ext;
+                        $targetPath = $uploadDir . '/' . $filename;
+                        if (@file_put_contents($targetPath, $decoded)) {
+                            $data['profile_photo'] = '/uploads/employees/' . $filename;
+                        }
+                    }
+                }
+            } catch (\Exception $e) {}
+        }
+
         $db = Database::getConnection();
         
         $fields = [
@@ -156,7 +208,7 @@ class EmployeeController extends Controller {
             'driving_license_no', 'driving_license_expiry', 'insurance_no', 'insurance_expiry', 'gosi_no', 'lmra_no',
             'department_id', 'designation_id', 'date_of_joining', 'date_of_leaving', 'employment_type', 'status',
             'basic_salary', 'housing_allowance', 'transport_allowance', 'car_allowance', 'mobile_allowance', 'food_allowance', 'other_allowance',
-            'bank_name', 'iban', 'bank_account_no'
+            'bank_name', 'iban', 'bank_account_no', 'profile_photo', 'address', 'blood_group'
         ];
         
         $setClauses = [];
