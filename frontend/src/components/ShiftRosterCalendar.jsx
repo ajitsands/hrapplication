@@ -18,7 +18,8 @@ import {
   ChevronRight,
   Sun,
   Moon,
-  Clock
+  Clock,
+  Download
 } from 'lucide-react';
 
 export const ShiftRosterCalendar = () => {
@@ -164,6 +165,37 @@ export const ShiftRosterCalendar = () => {
     setIsBulkModalOpen(true);
   };
 
+  const downloadAttendanceTemplate = () => {
+    let csvContent = 'Employee Code,Date,Check In,Check Out,Status,Manual OT Hours\r\n';
+    const today = new Date().toISOString().slice(0, 10);
+    
+    if (rosterData && rosterData.length > 0) {
+      rosterData.forEach((emp, i) => {
+        const inTime = i % 2 === 0 ? '08:00' : '08:30';
+        const outTime = i % 2 === 0 ? '16:00' : '17:30';
+        const ot = i % 2 === 0 ? '0' : '1.0';
+        csvContent += `${emp.emp_code},${today},${inTime},${outTime},Present,${ot}\r\n`;
+      });
+    } else {
+      csvContent += `EMP-001,${today},08:00,16:00,Present,0\r\n`;
+      csvContent += `EMP-002,${today},08:00,18:30,Present,2.5\r\n`;
+      csvContent += `EMP-003,${today},08:15,16:15,Present,0\r\n`;
+      csvContent += `EMP-004,${today},08:00,16:00,Present,0\r\n`;
+      csvContent += `EMP-005,${today},00:00,00:00,Absent,0\r\n`;
+    }
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Biometric_Attendance_Template_${today}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast('Success', 'Biometric attendance CSV template downloaded', 'success');
+  };
+
   const handleBulkSubmit = async (e) => {
     e.preventDefault();
     if (!bulkForm.start_date || !bulkForm.end_date || bulkForm.employee_ids.length === 0) {
@@ -271,6 +303,16 @@ export const ShiftRosterCalendar = () => {
               Bulk Shift Scheduler
             </button>
           )}
+
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={downloadAttendanceTemplate}
+            title="Download CSV Attendance Template pre-filled with staff codes"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 600 }}
+          >
+            <Download size={15} />
+            Download CSV Template
+          </button>
 
           <button
             className="btn btn-secondary btn-sm"
@@ -561,7 +603,19 @@ export const ShiftRosterCalendar = () => {
         size="md"
       >
         <form onSubmit={handleBulkSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '0.65rem 0.85rem', borderRadius: 'var(--radius-sm)', border: '1px solid #e2e8f0', marginTop: '-0.25rem' }}>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Need biometric CSV template with staff codes?</span>
+            <button
+              type="button"
+              className="btn btn-xs btn-outline-primary"
+              onClick={downloadAttendanceTemplate}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.75rem', padding: '0.25rem 0.6rem', fontWeight: 700 }}
+            >
+              <Download size={12} /> Download CSV Template
+            </button>
+          </div>
+
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>
             Assign a recurring shift rotation or mark rest days across date ranges for entire departments or groups.
           </p>
 
