@@ -2359,6 +2359,17 @@ body.printing-manual {
   width: 100%;
 }
 
+.manual-footer-nav {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 1rem !important;
+  margin-top: 2.5rem !important;
+  padding-top: 1.25rem !important;
+  border-top: 1px solid var(--border-subtle, #e2e8f0) !important;
+  width: 100% !important;
+}
+
 /* Attendance Matrix Print-Only Elements (Hidden on screen) */
 .matrix-print-header,
 .matrix-print-signatures {

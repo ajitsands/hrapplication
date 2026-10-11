@@ -789,7 +789,19 @@ export const UserManualModal = ({ isOpen, onClose }) => {
             )}
 
             {/* PREVIOUS / NEXT TOPIC FOOTER */}
-            <div className="manual-footer-nav no-print">
+            <div
+              className="manual-footer-nav no-print"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '1rem',
+                marginTop: '2.5rem',
+                paddingTop: '1.25rem',
+                borderTop: '1px solid #e2e8f0',
+                width: '100%'
+              }}
+            >
               {prevTopic ? (
                 <button
                   type="button"
@@ -806,7 +818,7 @@ export const UserManualModal = ({ isOpen, onClose }) => {
                   type="button"
                   className="btn btn-primary btn-sm"
                   onClick={() => setActiveTopicId(nextTopic.id)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginLeft: 'auto' }}
                 >
                   Next: {nextTopic.title} <ChevronRight size={15} />
                 </button>
