@@ -485,6 +485,37 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
   const presentCount = records.filter((r) => r.status === 'Present').length;
   const absentCount = records.filter((r) => r.status === 'Absent').length;
 
+  const downloadAttendanceTemplate = () => {
+    let csvContent = 'Employee Code,Date,Check In,Check Out,Status,Manual OT Hours\r\n';
+    const today = new Date().toISOString().slice(0, 10);
+    
+    if (employees && employees.length > 0) {
+      employees.forEach((emp, i) => {
+        const inTime = i % 2 === 0 ? '08:00' : '08:30';
+        const outTime = i % 2 === 0 ? '16:00' : '17:30';
+        const ot = i % 2 === 0 ? '0' : '1.0';
+        csvContent += `${emp.emp_code},${today},${inTime},${outTime},Present,${ot}\r\n`;
+      });
+    } else {
+      csvContent += `EMP-001,${today},08:00,16:00,Present,0\r\n`;
+      csvContent += `EMP-002,${today},08:00,18:30,Present,2.5\r\n`;
+      csvContent += `EMP-003,${today},08:15,16:15,Present,0\r\n`;
+      csvContent += `EMP-004,${today},08:00,16:00,Present,0\r\n`;
+      csvContent += `EMP-005,${today},00:00,00:00,Absent,0\r\n`;
+    }
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Biometric_Attendance_Template_${today}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast('Success', 'Biometric attendance CSV template downloaded', 'success');
+  };
+
   return (
     <div>
       {/* Page Header */}
@@ -495,6 +526,9 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
         </div>
 
         <div className="header-action-group">
+          <button className="btn btn-secondary" onClick={downloadAttendanceTemplate} title="Download standard CSV template with employee codes">
+            <Download size={16} /> Download CSV Template
+          </button>
           <button className="btn btn-gold" onClick={openLandscapeReportModal}>
             <Printer size={16} /> Landscape Monthly Sheet Print
           </button>
@@ -1110,13 +1144,29 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
 
         {activeImportTab === 'upload' && (
           <form onSubmit={handleImportSubmit}>
-            <div style={{ background: 'linear-gradient(135deg, #eff6ff 0%, #fdf2f8 100%)', padding: '1rem 1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid #bfdbfe', marginBottom: '1.25rem' }}>
+            <div style={{ background: 'linear-gradient(135deg, #eff6ff 0%, #fdf2f8 100%)', padding: '1rem 1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid #bfdbfe', marginBottom: '1rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary)', fontWeight: 800, fontSize: '0.9rem', marginBottom: '0.25rem' }}>
                 <Zap size={16} /> Batch Tracking &amp; Rollback Enabled
               </div>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0 }}>
                 Every import is saved as an identifiable batch with a name and timestamp. If an error is found, you can delete the entire batch anytime to rollback and re-import clean records.
               </p>
+            </div>
+
+            {/* CSV Template Download Action Banner */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: 'var(--radius-sm)', border: '1px solid #e2e8f0', marginBottom: '1.25rem' }}>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--text-primary)' }}>Need the CSV Import Template?</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Pre-formatted columns (Emp Code, Date, In, Out, Status, OT) populated with active staff codes.</div>
+              </div>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-primary"
+                onClick={downloadAttendanceTemplate}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, padding: '0.4rem 0.85rem', whiteSpace: 'nowrap' }}
+              >
+                <Download size={14} /> Download CSV Template
+              </button>
             </div>
 
             {/* Batch Name & Timestamp Inputs */}
@@ -1173,6 +1223,26 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
                   style={{ marginTop: '0.75rem', cursor: 'pointer' }}
                   onChange={handleCsvFileChange}
                 />
+                <div style={{ marginTop: '0.5rem' }}>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); downloadAttendanceTemplate(); }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--primary)',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      textDecoration: 'underline',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem'
+                    }}
+                  >
+                    <Download size={13} /> Or download standard CSV template pre-filled with staff codes
+                  </button>
+                </div>
               </div>
             </div>
 
