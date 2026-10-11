@@ -234,10 +234,10 @@ class AttendanceController extends Controller {
                    WHERE e.status = 'Active'";
         $empParams = [];
         
-        if ($scope === 'individual' && $empId) {
+        if ($empId) {
             $empSql .= " AND e.id = ?";
             $empParams[] = $empId;
-        } elseif ($scope === 'department' && $deptId) {
+        } elseif ($deptId) {
             $empSql .= " AND e.department_id = ?";
             $empParams[] = $deptId;
         }
@@ -307,6 +307,8 @@ class AttendanceController extends Controller {
                 if ($record) {
                     $checkIn = !empty($record['check_in']) ? date('g:i A', strtotime($record['check_in'])) : '';
                     $checkOut = !empty($record['check_out']) ? date('g:i A', strtotime($record['check_out'])) : '';
+                    $checkIn24 = !empty($record['check_in']) ? date('H:i', strtotime($record['check_in'])) : '';
+                    $checkOut24 = !empty($record['check_out']) ? date('H:i', strtotime($record['check_out'])) : '';
                     $dayHours = (float)$record['total_hours'];
                     $dayOt = (float)$record['ot_hours'];
                     $dayOtHours = (float)($record['day_ot_hours'] ?? 0.00);
@@ -370,6 +372,8 @@ class AttendanceController extends Controller {
                     'shift_code' => $shiftCode,
                     'check_in' => $checkIn,
                     'check_out' => $checkOut,
+                    'check_in_24' => $checkIn24 ?? '',
+                    'check_out_24' => $checkOut24 ?? '',
                     'total_hours' => $dayHours > 0 ? sprintf("%.2f", $dayHours) : '',
                     'ot_hours' => $dayOt > 0 ? sprintf("%.2f", $dayOt) : '',
                     'status' => $status,

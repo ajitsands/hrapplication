@@ -7,6 +7,7 @@ import { DataTable } from '../components/DataTable';
 import { Modal } from '../components/Modal';
 import { ShiftMaster } from '../components/ShiftMaster';
 import { ShiftRosterCalendar } from '../components/ShiftRosterCalendar';
+import { MonthlyAttendanceReport } from '../components/MonthlyAttendanceReport';
 import {
   Clock,
   UploadCloud,
@@ -486,6 +487,14 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
         >
           <CalendarDays size={16} /> Monthly Shift Rostering
         </button>
+
+        <button
+          className={`btn btn-sm ${activeSubTab === 'report' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setActiveSubTab('report')}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 700 }}
+        >
+          <FileSpreadsheet size={16} /> Monthly Attendance Report
+        </button>
       </div>
 
       {/* VIEW 1: SHIFT MASTER */}
@@ -494,7 +503,10 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
       {/* VIEW 2: SHIFT ROSTERING CALENDAR */}
       {activeSubTab === 'roster' && <ShiftRosterCalendar />}
 
-      {/* VIEW 3: DAILY ATTENDANCE & LOGS */}
+      {/* VIEW 3: MONTHLY ATTENDANCE MATRIX REPORT (AFTER MONTHLY SHIFT ROSTER) */}
+      {activeSubTab === 'report' && <MonthlyAttendanceReport />}
+
+      {/* VIEW 4: DAILY ATTENDANCE & LOGS */}
       {activeSubTab === 'daily' && (
         <>
           {/* NEW ATTRACTIVE HERO SECTION: Digital Clock & Live Punch Hub */}
