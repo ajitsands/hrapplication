@@ -100,7 +100,7 @@ export const Employees = () => {
     user_password: 'password123',
     profile_photo: '',
     address: '',
-    blood_group: 'O+'
+    blood_group: ''
   };
 
   const [formData, setFormData] = useState(initialForm);
@@ -206,7 +206,7 @@ export const Employees = () => {
       other_allowance: parseFloat(emp.other_allowance || 0),
       profile_photo: emp.profile_photo || '',
       address: emp.address || '',
-      blood_group: emp.blood_group || 'O+',
+      blood_group: emp.blood_group || '',
       create_user_account: false
     });
     setFormTab('personal');
@@ -245,7 +245,7 @@ export const Employees = () => {
         phone: cardData.phone || prev.phone,
         email: cardData.email || prev.email,
         address: cardData.address || prev.address,
-        blood_group: cardData.blood_group || prev.blood_group,
+        blood_group: cardData.blood_group !== undefined ? cardData.blood_group : (prev.blood_group || ''),
         profile_photo: cardData.profile_photo || prev.profile_photo
       }));
 
@@ -1125,9 +1125,10 @@ export const Employees = () => {
               </div>
 
               <div className="form-row">
-                <div className="form-group" style={{ maxWidth: '180px' }}>
+                <div className="form-group" style={{ minWidth: '220px', maxWidth: '260px' }}>
                   <label className="form-label">Blood Group</label>
-                  <select name="blood_group" className="form-control" value={formData.blood_group || 'O+'} onChange={handleChange}>
+                  <select name="blood_group" className="form-control" value={formData.blood_group || ''} onChange={handleChange}>
+                    <option value="">-- Select Blood Group (Optional) --</option>
                     <option value="A+">A+</option>
                     <option value="A-">A-</option>
                     <option value="B+">B+</option>
@@ -1580,7 +1581,7 @@ export const Employees = () => {
                 <p><strong>LMRA Visa No:</strong> {currentEmployee.visa_no || 'N/A'} (Exp: {formatDate(currentEmployee.visa_expiry)})</p>
                 <p><strong>GOSI Reg No:</strong> {currentEmployee.gosi_no || 'N/A'}</p>
                 <p><strong>Nationality:</strong> {currentEmployee.nationality} ({currentEmployee.is_gcc_citizen ? 'GCC Citizen' : 'Expat'})</p>
-                <p><strong>Blood Group:</strong> {currentEmployee.blood_group || 'O+'}</p>
+                <p><strong>Blood Group:</strong> {currentEmployee.blood_group || 'Not Specified'}</p>
                 <p><strong>Address:</strong> {currentEmployee.address || 'Kingdom of Bahrain'}</p>
               </div>
 

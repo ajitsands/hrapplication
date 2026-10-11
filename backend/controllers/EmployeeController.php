@@ -93,6 +93,11 @@ class EmployeeController extends Controller {
             }
         }
 
+        // Validate blood group (Optional, but ensures wrong data is never saved)
+        $validBloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+        $rawBlood = !empty($data['blood_group']) ? strtoupper(trim($data['blood_group'])) : null;
+        $cleanBlood = in_array($rawBlood, $validBloodGroups, true) ? $rawBlood : null;
+
         $sql = "INSERT INTO employees (
             emp_code, first_name, last_name, email, phone, gender, dob, nationality, is_gcc_citizen,
             cpr_no, cpr_expiry, passport_no, passport_expiry, visa_no, visa_expiry,
@@ -149,7 +154,7 @@ class EmployeeController extends Controller {
             'bank_account_no' => $data['bank_account_no'] ?? null,
             'profile_photo' => $profilePhoto,
             'address' => $data['address'] ?? null,
-            'blood_group' => $data['blood_group'] ?? null,
+            'blood_group' => $cleanBlood,
         ]);
         
         $newId = (int)$db->lastInsertId();
@@ -198,6 +203,13 @@ class EmployeeController extends Controller {
                     }
                 }
             } catch (\Exception $e) {}
+        }
+
+        // Clean blood group in update
+        if (array_key_exists('blood_group', $data)) {
+            $validBloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+            $rawBlood = !empty($data['blood_group']) ? strtoupper(trim($data['blood_group'])) : null;
+            $data['blood_group'] = in_array($rawBlood, $validBloodGroups, true) ? $rawBlood : null;
         }
 
         $db = Database::getConnection();

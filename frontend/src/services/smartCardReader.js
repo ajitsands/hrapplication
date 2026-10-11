@@ -499,6 +499,12 @@ class SmartCardReaderService {
       photoBase64 = `data:image/jpeg;base64,${photoBase64}`;
     }
 
+    // Blood Group (Validate and only set if legitimately found on card)
+    const rawBlood = this.findFieldValue(misc, 'BloodGroup', 'BloodType') || this.findFieldValue(raw, 'BloodGroup', 'BloodType') || '';
+    const VALID_BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+    const normBlood = rawBlood ? rawBlood.toUpperCase().trim() : '';
+    const cleanBlood = VALID_BLOOD_GROUPS.includes(normBlood) ? normBlood : '';
+
     return {
       cpr_no: cpr,
       first_name: firstName,
@@ -509,7 +515,7 @@ class SmartCardReaderService {
       gender: gender,
       nationality: nationality,
       is_gcc_citizen: isGccCitizen,
-      blood_group: this.findFieldValue(misc, 'BloodGroup') || this.findFieldValue(raw, 'BloodGroup') || 'O+',
+      blood_group: cleanBlood,
       phone: phone,
       email: email,
       address: address,
@@ -598,6 +604,25 @@ class SmartCardReaderService {
         passport_no: 'SA7728190',
         cpr_expiry: '2030-12-30',
         profile_photo: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&auto=format&fit=crop&q=80',
+        source: 'SIMULATOR'
+      },
+      {
+        cpr_no: '980211740',
+        first_name: 'Zainab',
+        last_name: 'Al-Majed',
+        full_name_en: 'Zainab Hasan Al-Majed',
+        full_name_ar: 'زينب حسن الماجد',
+        dob: '1998-02-11',
+        gender: 'Female',
+        nationality: 'Bahraini',
+        is_gcc_citizen: 1,
+        blood_group: '',
+        phone: '+973 3822 4411',
+        email: 'zainab.majed@company.bh',
+        address: 'Villa 14, Road 2201, Block 322, Manama',
+        passport_no: 'BH5541902',
+        cpr_expiry: '2031-02-11',
+        profile_photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
         source: 'SIMULATOR'
       }
     ];
