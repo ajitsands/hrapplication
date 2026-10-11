@@ -199,7 +199,7 @@ class ShiftController extends Controller {
         $this->successResponse(null, 'Department default shift updated');
     }
 
-    private function requireAdminOrHr(): void {
+    protected function requireAdminOrHr(): void {
         if ($this->authUser && $this->authUser['role'] === 'employee') {
             $this->errorResponse('Unauthorized. Admin or HR privileges required.', 403);
         }

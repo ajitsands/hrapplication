@@ -52,4 +52,16 @@ class Controller {
         
         return $_GET;
     }
+
+    protected function requireAdminOrHr(): void {
+        if ($this->authUser && $this->authUser['role'] === 'employee') {
+            $this->errorResponse('Unauthorized. Admin or HR privileges required.', 403);
+        }
+    }
+
+    protected function requireAdmin(): void {
+        if ($this->authUser && $this->authUser['role'] !== 'admin') {
+            $this->errorResponse('Unauthorized. System administrator privileges required.', 403);
+        }
+    }
 }
