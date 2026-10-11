@@ -90,6 +90,7 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
   const [importBatches, setImportBatches] = useState([]);
   const [activeImportTab, setActiveImportTab] = useState('upload'); // 'upload' | 'history'
   const [isBatchDeleting, setIsBatchDeleting] = useState(false);
+  const [batchToDelete, setBatchToDelete] = useState(null);
 
   // Live clock interval
   useEffect(() => {
@@ -147,16 +148,18 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
     setIsImportModalOpen(true);
   };
 
-  const handleDeleteBatch = async (batch) => {
-    const punchCount = batch.current_punches_count ?? batch.record_count ?? 0;
-    const confirmMsg = `Are you sure you want to delete Batch "${batch.batch_name}"?\n\nThis will completely delete all ${punchCount} punch records imported under this batch, allowing you to re-import a clean CSV file and redo calculations.`;
-    if (!window.confirm(confirmMsg)) return;
+  const promptDeleteBatch = (batch) => {
+    setBatchToDelete(batch);
+  };
 
+  const confirmDeleteBatch = async () => {
+    if (!batchToDelete) return;
     try {
       setIsBatchDeleting(true);
-      const res = await api.delete(`/attendance/batches/${batch.id}`);
+      const res = await api.delete(`/attendance/batches/${batchToDelete.id}`);
       if (res.success) {
         showToast('Batch Deleted', res.message || 'Batch removed and punches rolled back', 'success');
+        setBatchToDelete(null);
         await Promise.all([fetchBatches(), fetchData()]);
       }
     } catch (err) {
@@ -1462,7 +1465,7 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
                         <td style={{ textAlign: 'right' }}>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDeleteBatch(b)}
+                            onClick={() => promptDeleteBatch(b)}
                             disabled={isBatchDeleting}
                             style={{
                               padding: '0.3rem 0.65rem',
@@ -1485,6 +1488,87 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
             )}
           </div>
         )}
+      </Modal>
+
+      {/* 2B. CONFIRM DELETE BATCH POPUP MODAL */}
+      <Modal
+        isOpen={!!batchToDelete}
+        onClose={() => setBatchToDelete(null)}
+        title="Confirm Batch Rollback"
+        size="sm"
+      >
+        <div style={{ textAlign: 'center', padding: '0.75rem 0.25rem' }}>
+          <div
+            style={{
+              width: '52px',
+              height: '52px',
+              borderRadius: '50%',
+              background: '#fee2e2',
+              color: '#dc2626',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1rem'
+            }}
+          >
+            <Trash2 size={26} />
+          </div>
+
+          <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
+            Delete Biometric Batch?
+          </h4>
+
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '1rem' }}>
+            Are you sure you want to delete Batch <strong>"{batchToDelete?.batch_name}"</strong>?
+          </p>
+
+          <div
+            style={{
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+              borderRadius: 'var(--radius-sm)',
+              padding: '0.75rem 0.85rem',
+              fontSize: '0.8rem',
+              color: '#991b1b',
+              textAlign: 'left',
+              marginBottom: '1.25rem',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '0.5rem',
+              lineHeight: 1.45
+            }}
+          >
+            <AlertCircle size={16} color="#ef4444" style={{ flexShrink: 0, marginTop: '2px' }} />
+            <div>
+              This will completely delete all <strong>{batchToDelete?.current_punches_count ?? batchToDelete?.record_count ?? 0} punch records</strong> imported under this batch, allowing you to re-import a clean CSV file and redo calculations.
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.65rem' }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setBatchToDelete(null)}
+              disabled={isBatchDeleting}
+              style={{ minWidth: '90px' }}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn-danger"
+              onClick={confirmDeleteBatch}
+              disabled={isBatchDeleting}
+              style={{ minWidth: '130px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 700 }}
+            >
+              {isBatchDeleting ? 'Deleting...' : (
+                <>
+                  <Trash2 size={14} /> Yes, Delete Batch
+                </>
+              )}
+            </button>
+          </div>
+        </div>
       </Modal>
 
       {/* 3. MANUAL PUNCH MODAL */}
