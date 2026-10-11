@@ -41,10 +41,13 @@ class Router {
         $parsedUri = parse_url($requestUri, PHP_URL_PATH);
         
         // Remove script subpath if running in a subdirectory or standard URL
-        $scriptName = dirname($_SERVER['SCRIPT_NAME']);
-        if ($scriptName !== '/' && $scriptName !== '\\' && strpos($parsedUri, $scriptName) === 0) {
+        $scriptName = dirname($_SERVER['SCRIPT_NAME'] ?? '');
+        if ($scriptName !== '/' && $scriptName !== '\\' && $scriptName !== '.' && strpos($parsedUri, $scriptName) === 0) {
             $parsedUri = substr($parsedUri, strlen($scriptName));
         }
+
+        // Remove index.php if present
+        $parsedUri = preg_replace('#^/index\.php#i', '', $parsedUri);
         
         $uri = $this->normalizePath($parsedUri);
         $method = strtoupper($requestMethod);
@@ -58,7 +61,25 @@ class Router {
             $pattern = preg_replace('/\{([a-zA-Z0-9_]+)\}/', '(?P<$1>[^/]+)', $route['path']);
             $pattern = '#^' . $pattern . '$#';
             
-            if (preg_match($pattern, $uri, $matches)) {
+            // Support both with and without /api prefix
+            $targetUris = [$uri];
+            if (strpos($uri, '/api') === 0) {
+                $targetUris[] = substr($uri, 4) ?: '/';
+            } else {
+                $targetUris[] = '/api' . $uri;
+            }
+            
+            $matched = false;
+            $matches = [];
+            foreach (array_unique($targetUris) as $testUri) {
+                if (preg_match($pattern, $testUri, $m)) {
+                    $matched = true;
+                    $matches = $m;
+                    break;
+                }
+            }
+            
+            if ($matched) {
                 $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
                 
                 // Execute Middlewares
