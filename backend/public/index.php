@@ -73,6 +73,8 @@ $router->delete('/api/documents/{id}', ['App\Controllers\DocumentController', 'd
 // Attendance & Biometric CSV
 $router->get('/api/attendance', ['App\Controllers\AttendanceController', 'index'], $auth);
 $router->get('/api/attendance/monthly-report', ['App\Controllers\AttendanceController', 'monthlyReport'], $auth);
+$router->get('/api/attendance/batches', ['App\Controllers\AttendanceController', 'getBatches'], $auth);
+$router->delete('/api/attendance/batches/{id}', ['App\Controllers\AttendanceController', 'deleteBatch'], $auth);
 $router->post('/api/attendance/mark', ['App\Controllers\AttendanceController', 'mark'], $auth);
 $router->post('/api/attendance/import', ['App\Controllers\AttendanceController', 'importCsv'], $auth);
 

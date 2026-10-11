@@ -98,10 +98,97 @@ class AttendanceController extends Controller {
         $this->successResponse($metrics, 'Attendance marked successfully');
     }
     
+    private function ensureBatchSchema(PDO $db): void {
+        try {
+            $db->exec("
+                CREATE TABLE IF NOT EXISTS attendance_batches (
+                    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+                    batch_name VARCHAR(150) NOT NULL,
+                    batch_code VARCHAR(60) NOT NULL,
+                    imported_at DATETIME NOT NULL,
+                    record_count INT(11) NOT NULL DEFAULT 0,
+                    file_name VARCHAR(255) NULL,
+                    imported_by VARCHAR(100) NULL,
+                    notes TEXT NULL,
+                    status ENUM('active', 'deleted') NOT NULL DEFAULT 'active',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_batch_code (batch_code),
+                    INDEX idx_status (status)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            ");
+
+            $stmt = $db->query("SHOW COLUMNS FROM attendance LIKE 'batch_id'");
+            if (!$stmt->fetch()) {
+                $db->exec("ALTER TABLE attendance ADD COLUMN batch_id INT(11) NULL AFTER source, ADD INDEX idx_batch_id (batch_id)");
+            }
+        } catch (\Exception $e) {
+            // Ignore if already existing
+        }
+    }
+
+    public function getBatches(): void {
+        $this->requireAdminOrHr();
+        $db = Database::getConnection();
+        $this->ensureBatchSchema($db);
+
+        $stmt = $db->query("
+            SELECT b.*, 
+                   (SELECT COUNT(*) FROM attendance a WHERE a.batch_id = b.id) as current_punches_count
+            FROM attendance_batches b
+            ORDER BY b.imported_at DESC
+        ");
+        $batches = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $this->successResponse($batches, 'Import batches retrieved');
+    }
+
+    public function deleteBatch(array $params): void {
+        $this->requireAdminOrHr();
+        $id = (int)($params['id'] ?? 0);
+        if (!$id) {
+            $this->errorResponse('Batch ID is required');
+        }
+
+        $db = Database::getConnection();
+        $this->ensureBatchSchema($db);
+
+        $stmt = $db->prepare("SELECT * FROM attendance_batches WHERE id = ?");
+        $stmt->execute([$id]);
+        $batch = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$batch) {
+            $this->errorResponse('Import batch not found', 404);
+        }
+
+        // Delete all attendance records associated with this batch
+        $delAttStmt = $db->prepare("DELETE FROM attendance WHERE batch_id = ?");
+        $delAttStmt->execute([$id]);
+        $deletedRows = $delAttStmt->rowCount();
+
+        // Delete batch record
+        $delBatchStmt = $db->prepare("DELETE FROM attendance_batches WHERE id = ?");
+        $delBatchStmt->execute([$id]);
+
+        $this->successResponse([
+            'batch_id' => $id,
+            'deleted_punches' => $deletedRows
+        ], "Batch '{$batch['batch_name']}' successfully deleted. {$deletedRows} biometric punch records were removed.");
+    }
+
     public function importCsv(): void {
+        $this->requireAdminOrHr();
         $settings = $this->settingModel->getSettings();
         $db = Database::getConnection();
-        
+        $this->ensureBatchSchema($db);
+
+        $data = $this->getRequestData();
+        $batchName = trim($_POST['batch_name'] ?? ($data['batch_name'] ?? ''));
+        if (empty($batchName)) {
+            $batchName = "Biometric Sync - " . date('d M Y H:i');
+        }
+        $batchCode = 'BATCH-' . date('Ymd-His') . '-' . rand(100, 999);
+        $fileName = !empty($_FILES['csv_file']['name']) ? $_FILES['csv_file']['name'] : 'biometric_paste.csv';
+        $importedBy = $this->authUser['username'] ?? 'admin';
+
         // Cache employee mapping
         $empStmt = $db->query("SELECT id, emp_code, cpr_no FROM employees");
         $empCodeMap = [];
@@ -116,7 +203,6 @@ class AttendanceController extends Controller {
             $content = file_get_contents($_FILES['csv_file']['tmp_name']);
             $lines = preg_split("/\r\n|\n|\r/", trim($content));
         } else {
-            $data = $this->getRequestData();
             if (!empty($data['csv_text'])) {
                 $lines = preg_split("/\r\n|\n|\r/", trim($data['csv_text']));
             }
@@ -125,6 +211,14 @@ class AttendanceController extends Controller {
         if (empty($lines)) {
             $this->errorResponse('No CSV file or data provided.');
         }
+
+        // Insert batch tracking record
+        $batchStmt = $db->prepare("
+            INSERT INTO attendance_batches (batch_name, batch_code, imported_at, record_count, file_name, imported_by, notes)
+            VALUES (?, ?, NOW(), 0, ?, ?, ?)
+        ");
+        $batchStmt->execute([$batchName, $batchCode, $fileName, $importedBy, "Imported $fileName with batch '$batchName'"]);
+        $batchId = (int)$db->lastInsertId();
         
         $importedCount = 0;
         
@@ -132,17 +226,18 @@ class AttendanceController extends Controller {
             INSERT INTO attendance (
                 employee_id, date, shift_id, check_in, check_out, total_hours, status,
                 early_in_mins, late_in_mins, early_out_mins,
-                ot_hours, day_ot_hours, night_ot_hours, holiday_ot_hours, ot_rate_applied, source, notes
+                ot_hours, day_ot_hours, night_ot_hours, holiday_ot_hours, ot_rate_applied, batch_id, source, notes
             ) VALUES (
                 :emp_id, :date, :shift_id, :check_in, :check_out, :total_hours, :status,
                 :early_in_mins, :late_in_mins, :early_out_mins,
-                :ot_hours, :day_ot_hours, :night_ot_hours, :holiday_ot_hours, :ot_rate, 'Biometric CSV Import', :notes
+                :ot_hours, :day_ot_hours, :night_ot_hours, :holiday_ot_hours, :ot_rate, :batch_id, 'Biometric CSV Import', :notes
             ) ON DUPLICATE KEY UPDATE 
                 shift_id = VALUES(shift_id), check_in = VALUES(check_in), check_out = VALUES(check_out),
                 total_hours = VALUES(total_hours), status = VALUES(status),
                 early_in_mins = VALUES(early_in_mins), late_in_mins = VALUES(late_in_mins), early_out_mins = VALUES(early_out_mins),
                 ot_hours = VALUES(ot_hours), day_ot_hours = VALUES(day_ot_hours), night_ot_hours = VALUES(night_ot_hours),
-                holiday_ot_hours = VALUES(holiday_ot_hours), ot_rate_applied = VALUES(ot_rate_applied), source = 'Biometric CSV Import'
+                holiday_ot_hours = VALUES(holiday_ot_hours), ot_rate_applied = VALUES(ot_rate_applied),
+                batch_id = VALUES(batch_id), source = 'Biometric CSV Import'
         ");
         
         foreach ($lines as $idx => $line) {
@@ -193,15 +288,23 @@ class AttendanceController extends Controller {
                 'night_ot_hours' => $metrics['night_ot_hours'],
                 'holiday_ot_hours' => $metrics['holiday_ot_hours'],
                 'ot_rate' => $metrics['ot_rate_applied'],
-                'notes' => 'Imported via biometric punch CSV (Matched with ' . ($metrics['shift_info']['name'] ?? 'General Shift') . ')'
+                'batch_id' => $batchId,
+                'notes' => 'Imported via biometric punch CSV (Matched with ' . ($metrics['shift_info']['name'] ?? 'General Shift') . ') [Batch #' . $batchId . ']'
             ]);
             
             $importedCount++;
         }
+
+        // Update record count in batch
+        $upStmt = $db->prepare("UPDATE attendance_batches SET record_count = ? WHERE id = ?");
+        $upStmt->execute([$importedCount, $batchId]);
         
         $this->successResponse([
+            'batch_id' => $batchId,
+            'batch_name' => $batchName,
+            'batch_code' => $batchCode,
             'imported_records' => $importedCount
-        ], "Biometric Attendance CSV successfully processed ($importedCount records imported/updated with shift overtime).");
+        ], "Biometric Attendance CSV successfully processed under Batch '{$batchName}' ($importedCount records imported/updated).");
     }
     
     public function monthlyReport(): void {

@@ -217,15 +217,17 @@ export const MonthlyAttendanceReport = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-      {/* 1. TOP HEADER & FILTER BAR - ELEGANT LIGHT THEME */}
+      {/* 1. TOP HEADER & FILTER BAR - LUMINOUS EXECUTIVE GRADIENT THEME */}
       <div
         className="card"
         style={{
-          padding: '1.25rem 1.5rem',
-          background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+          padding: '1.35rem 1.65rem',
+          background: 'linear-gradient(135deg, #e0f2fe 0%, #eef2ff 35%, #faf5ff 68%, #fce7f3 100%)',
           color: '#0f172a',
-          border: '1px solid var(--border-subtle)',
-          boxShadow: '0 4px 18px rgba(0, 0, 0, 0.04)'
+          border: '1px solid #c7d2fe',
+          boxShadow: '0 8px 24px -4px rgba(99, 102, 241, 0.08)',
+          position: 'relative',
+          overflow: 'hidden'
         }}
       >
         <div
@@ -240,29 +242,38 @@ export const MonthlyAttendanceReport = () => {
           <div>
             <div
               style={{
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.45rem',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                color: '#6366f1',
+                fontSize: '0.78rem',
+                fontWeight: 800,
+                color: '#4f46e5',
+                background: 'rgba(255, 255, 255, 0.85)',
+                backdropFilter: 'blur(6px)',
+                padding: '0.2rem 0.65rem',
+                borderRadius: '9999px',
+                border: '1px solid rgba(199, 210, 254, 0.8)',
                 textTransform: 'uppercase',
-                letterSpacing: '0.06em'
+                letterSpacing: '0.06em',
+                boxShadow: '0 1px 3px rgba(99, 102, 241, 0.08)'
               }}
             >
-              <FileSpreadsheet size={16} /> Monthly 1–31 Attendance &amp; Overtime Matrix
+              <FileSpreadsheet size={15} color="#6366f1" /> Monthly 1–31 Attendance &amp; Overtime Matrix
             </div>
             <h2
               style={{
-                fontSize: '1.5rem',
-                fontWeight: 800,
-                color: '#0f172a',
-                margin: '0.25rem 0'
+                fontSize: '1.65rem',
+                fontWeight: 900,
+                background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4338ca 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                margin: '0.35rem 0 0.25rem 0',
+                letterSpacing: '-0.02em'
               }}
             >
               Monthly Attendance Report
             </h2>
-            <p style={{ color: '#64748b', fontSize: '0.85rem', margin: 0 }}>
+            <p style={{ color: '#475569', fontSize: '0.85rem', margin: 0, fontWeight: 500 }}>
               Complete 30-day employee punch record: In-Time, Out-Time, Overtime
               breakdowns, and cumulative work hours compliant with Bahrain Labor Law.
             </p>
@@ -280,8 +291,8 @@ export const MonthlyAttendanceReport = () => {
                 background: '#ffffff',
                 color: '#0f172a',
                 borderColor: '#cbd5e1',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                fontWeight: 600
+                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
+                fontWeight: 700
               }}
             >
               <Download size={15} color="#0284c7" /> Export CSV
@@ -294,11 +305,11 @@ export const MonthlyAttendanceReport = () => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                background: '#ffffff',
-                color: '#0f172a',
-                borderColor: '#cbd5e1',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                fontWeight: 600
+                background: 'linear-gradient(135deg, #ffffff 0%, #f5f3ff 100%)',
+                color: '#4338ca',
+                borderColor: '#c7d2fe',
+                boxShadow: '0 2px 6px rgba(99, 102, 241, 0.08)',
+                fontWeight: 700
               }}
             >
               <Printer size={15} color="#6366f1" /> Print Matrix
@@ -316,7 +327,7 @@ export const MonthlyAttendanceReport = () => {
             gap: '1rem',
             marginTop: '1.25rem',
             paddingTop: '1rem',
-            borderTop: '1px solid #e2e8f0'
+            borderTop: '1px solid rgba(199, 210, 254, 0.7)'
           }}
         >
           {/* Month / Year Navigator */}
@@ -325,11 +336,11 @@ export const MonthlyAttendanceReport = () => {
               className="btn btn-sm"
               onClick={handlePrevMonth}
               style={{
-                padding: '0.35rem 0.6rem',
+                padding: '0.35rem 0.65rem',
                 background: '#ffffff',
                 color: '#0f172a',
                 border: '1px solid #cbd5e1',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
               }}
               title="Previous Month"
             >
@@ -338,16 +349,16 @@ export const MonthlyAttendanceReport = () => {
 
             <div
               style={{
-                padding: '0.35rem 0.85rem',
+                padding: '0.35rem 0.95rem',
                 background: '#ffffff',
                 borderRadius: 'var(--radius-sm)',
                 fontWeight: 800,
                 fontSize: '0.92rem',
                 minWidth: '150px',
                 textAlign: 'center',
-                color: '#0f172a',
-                border: '1px solid #cbd5e1',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                color: '#1e1b4b',
+                border: '1px solid #c7d2fe',
+                boxShadow: '0 2px 6px rgba(99, 102, 241, 0.06)'
               }}
             >
               {reportData?.month_title ||
@@ -361,11 +372,11 @@ export const MonthlyAttendanceReport = () => {
               className="btn btn-sm"
               onClick={handleNextMonth}
               style={{
-                padding: '0.35rem 0.6rem',
+                padding: '0.35rem 0.65rem',
                 background: '#ffffff',
                 color: '#0f172a',
                 border: '1px solid #cbd5e1',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
               }}
               title="Next Month"
             >

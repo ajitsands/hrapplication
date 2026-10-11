@@ -25,7 +25,11 @@ import {
   UserCheck,
   Building,
   Fingerprint,
-  Printer
+  Printer,
+  Trash2,
+  History,
+  Layers,
+  Tag
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -78,10 +82,14 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
     notes: 'Office biometric punch'
   });
 
-  // CSV Import State
+  // CSV Import & Batch Tracking State
   const [csvFile, setCsvFile] = useState(null);
   const [csvText, setCsvText] = useState('');
   const [csvPreview, setCsvPreview] = useState([]);
+  const [batchName, setBatchName] = useState('');
+  const [importBatches, setImportBatches] = useState([]);
+  const [activeImportTab, setActiveImportTab] = useState('upload'); // 'upload' | 'history'
+  const [isBatchDeleting, setIsBatchDeleting] = useState(false);
 
   // Live clock interval
   useEffect(() => {
@@ -89,13 +97,25 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
     return () => clearInterval(timer);
   }, []);
 
+  const fetchBatches = async () => {
+    try {
+      const res = await api.get('/attendance/batches');
+      if (res.success) {
+        setImportBatches(res.data || []);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [attRes, empRes, deptRes] = await Promise.all([
+      const [attRes, empRes, deptRes, batchRes] = await Promise.all([
         api.get('/attendance', { month, year, employee_id: selectedEmp }),
         api.get('/employees'),
-        api.get('/employees/departments')
+        api.get('/employees/departments'),
+        api.get('/attendance/batches')
       ]);
 
       if (attRes.success) {
@@ -108,10 +128,41 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
       if (deptRes.success) {
         setDepartments(deptRes.data || []);
       }
+      if (batchRes && batchRes.success) {
+        setImportBatches(batchRes.data || []);
+      }
     } catch (err) {
       showToast('Error', 'Failed to load attendance records', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openImportModal = () => {
+    const now = new Date();
+    const defaultName = `Biometric Sync - ${now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+    setBatchName(defaultName);
+    setActiveImportTab('upload');
+    fetchBatches();
+    setIsImportModalOpen(true);
+  };
+
+  const handleDeleteBatch = async (batch) => {
+    const punchCount = batch.current_punches_count ?? batch.record_count ?? 0;
+    const confirmMsg = `Are you sure you want to delete Batch "${batch.batch_name}"?\n\nThis will completely delete all ${punchCount} punch records imported under this batch, allowing you to re-import a clean CSV file and redo calculations.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      setIsBatchDeleting(true);
+      const res = await api.delete(`/attendance/batches/${batch.id}`);
+      if (res.success) {
+        showToast('Batch Deleted', res.message || 'Batch removed and punches rolled back', 'success');
+        await Promise.all([fetchBatches(), fetchData()]);
+      }
+    } catch (err) {
+      showToast('Error', err.message || 'Failed to delete batch', 'error');
+    } finally {
+      setIsBatchDeleting(false);
     }
   };
 
@@ -202,30 +253,33 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
     setCsvPreview(parsed);
   };
 
-  // Submit CSV Import
+  // Submit CSV Import with Batch Tracking
   const handleImportSubmit = async (e) => {
     e.preventDefault();
     try {
       let res;
+      const bName = batchName.trim() || `Biometric Sync - ${new Date().toLocaleDateString('en-GB')} ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+
       if (csvFile) {
         const data = new FormData();
         data.append('csv_file', csvFile);
+        data.append('batch_name', bName);
         res = await api.post('/attendance/import', data);
       } else if (csvText.trim()) {
-        res = await api.post('/attendance/import', { csv_text: csvText });
+        res = await api.post('/attendance/import', { csv_text: csvText, batch_name: bName });
       } else {
         showToast('Error', 'Please select a CSV file or paste punch data', 'error');
         return;
       }
 
       if (res.success) {
-        showToast('Import Complete', res.message, 'success');
+        showToast('Batch Import Complete', res.message, 'success');
         confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
-        setIsImportModalOpen(false);
         setCsvFile(null);
         setCsvText('');
         setCsvPreview([]);
-        fetchData();
+        await Promise.all([fetchBatches(), fetchData()]);
+        setActiveImportTab('history');
       }
     } catch (err) {
       showToast('Import Failed', err.message || 'Error processing CSV', 'error');
@@ -444,8 +498,8 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
           <button className="btn btn-gold" onClick={openLandscapeReportModal}>
             <Printer size={16} /> Landscape Monthly Sheet Print
           </button>
-          <button className="btn btn-pink" onClick={() => setIsImportModalOpen(true)}>
-            <UploadCloud size={16} /> Import Biometric CSV / Excel
+          <button className="btn btn-pink" onClick={openImportModal}>
+            <UploadCloud size={16} /> Import Biometric CSV &amp; Batches ({importBatches.length})
           </button>
           <button className="btn btn-primary" onClick={() => setIsManualModalOpen(true)}>
             <Plus size={16} /> Mark Manual Punch
@@ -998,107 +1052,294 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
         </div>
       </Modal>
 
-      {/* 2. BIOMETRIC CSV / EXCEL IMPORT MODAL */}
+      {/* 2. BIOMETRIC CSV / EXCEL IMPORT & BATCH MANAGER MODAL */}
       <Modal
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
-        title="Import Biometric Punch Attendance CSV / Excel"
+        title="Biometric Attendance CSV Import & Batch Manager"
         size="lg"
         footer={
-          <>
-            <button className="btn btn-secondary" onClick={() => setIsImportModalOpen(false)}>Cancel</button>
-            <button className="btn btn-pink" onClick={handleImportSubmit}>
-              <UploadCloud size={15} /> Process &amp; Import Records
-            </button>
-          </>
+          activeImportTab === 'upload' ? (
+            <>
+              <button className="btn btn-secondary" onClick={() => setIsImportModalOpen(false)}>Cancel</button>
+              <button className="btn btn-pink" onClick={handleImportSubmit}>
+                <UploadCloud size={15} /> Process &amp; Create Batch
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="btn btn-secondary" onClick={() => setIsImportModalOpen(false)}>Close</button>
+              <button className="btn btn-primary" onClick={() => setActiveImportTab('upload')}>
+                <Plus size={15} /> Upload Another Batch
+              </button>
+            </>
+          )
         }
       >
-        <form onSubmit={handleImportSubmit}>
-          <div style={{ background: 'linear-gradient(135deg, #eff6ff 0%, #fdf2f8 100%)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid #bfdbfe', marginBottom: '1.25rem' }}>
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--primary)' }}>
-              Universal Biometric Terminal Integration
-            </h4>
-            <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
-              Upload exported CSV files from ZKTeco, Suprema, or facial recognition terminals.
-              Required columns: <code>EmpCode/CPR, Date (YYYY-MM-DD), CheckIn (HH:MM), CheckOut (HH:MM), [Status], [OvertimeHours]</code>.
-            </p>
-          </div>
+        {/* Modal Subtabs Header */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '0.5rem',
+            marginBottom: '1.25rem',
+            borderBottom: '1px solid var(--border-subtle)',
+            paddingBottom: '0.65rem'
+          }}
+        >
+          <button
+            type="button"
+            className={`btn btn-sm ${activeImportTab === 'upload' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setActiveImportTab('upload')}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 700 }}
+          >
+            <UploadCloud size={15} /> Upload New Batch
+          </button>
 
-          <div className="form-group">
-            <label className="form-label required">Select CSV / Excel Export File</label>
-            <div className="biometric-dropzone">
-              <UploadCloud size={36} color="var(--accent-pink)" style={{ margin: '0 auto 0.5rem auto' }} />
-              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
-                Drag &amp; Drop Attendance CSV File Here
+          <button
+            type="button"
+            className={`btn btn-sm ${activeImportTab === 'history' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => {
+              setActiveImportTab('history');
+              fetchBatches();
+            }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 700 }}
+          >
+            <History size={15} /> Batch History &amp; Rollback ({importBatches.length})
+          </button>
+        </div>
+
+        {activeImportTab === 'upload' && (
+          <form onSubmit={handleImportSubmit}>
+            <div style={{ background: 'linear-gradient(135deg, #eff6ff 0%, #fdf2f8 100%)', padding: '1rem 1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid #bfdbfe', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary)', fontWeight: 800, fontSize: '0.9rem', marginBottom: '0.25rem' }}>
+                <Zap size={16} /> Batch Tracking &amp; Rollback Enabled
               </div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                Supports .csv, .txt, .xlsx punch logs
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0 }}>
+                Every import is saved as an identifiable batch with a name and timestamp. If an error is found, you can delete the entire batch anytime to rollback and re-import clean records.
+              </p>
+            </div>
+
+            {/* Batch Name & Timestamp Inputs */}
+            <div className="form-row" style={{ marginBottom: '1rem' }}>
+              <div className="form-group" style={{ flex: 2 }}>
+                <label className="form-label required">Batch Name / Reference</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  required
+                  placeholder="e.g. October 2026 Head Office Biometric Sync"
+                  value={batchName}
+                  onChange={(e) => setBatchName(e.target.value)}
+                  style={{ fontWeight: 700 }}
+                />
               </div>
-              <input
-                type="file"
-                accept=".csv, .txt, .xlsx"
+
+              <div className="form-group" style={{ flex: 1 }}>
+                <label className="form-label">Batch Timestamp</label>
+                <div
+                  style={{
+                    padding: '0.55rem 0.75rem',
+                    background: '#f8fafc',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    color: '#334155',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    height: '38px'
+                  }}
+                >
+                  <Clock size={15} color="#6366f1" /> {new Date().toLocaleDateString('en-GB')} {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                </div>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label required">Select CSV / Excel Export File</label>
+              <div className="biometric-dropzone">
+                <UploadCloud size={36} color="var(--accent-pink)" style={{ margin: '0 auto 0.5rem auto' }} />
+                <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+                  Drag &amp; Drop Attendance CSV File Here
+                </div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                  Supports .csv, .txt, .xlsx punch logs (ZKTeco, Suprema, Facial terminals)
+                </div>
+                <input
+                  type="file"
+                  accept=".csv, .txt, .xlsx"
+                  className="form-control"
+                  style={{ marginTop: '0.75rem', cursor: 'pointer' }}
+                  onChange={handleCsvFileChange}
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Or Paste CSV Text Directly</label>
+              <textarea
                 className="form-control"
-                style={{ marginTop: '0.75rem', cursor: 'pointer' }}
-                onChange={handleCsvFileChange}
+                rows={3}
+                placeholder="EMP-001,2026-10-01,08:00,18:30,Present,2.5"
+                value={csvText}
+                onChange={(e) => {
+                  setCsvText(e.target.value);
+                  parsePreview(e.target.value);
+                }}
               />
             </div>
-          </div>
 
-          <div className="form-group">
-            <label className="form-label">Or Paste CSV Text Directly</label>
-            <textarea
-              className="form-control"
-              rows={3}
-              placeholder="EMP-001,2026-10-01,08:00,18:30,Present,2.5"
-              value={csvText}
-              onChange={(e) => {
-                setCsvText(e.target.value);
-                parsePreview(e.target.value);
-              }}
-            />
-          </div>
+            {/* Live Preview */}
+            {csvPreview.length > 0 && (
+              <div style={{ marginTop: '1rem' }}>
+                <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--accent-pink)' }}>
+                  Preview Parsed Records ({csvPreview.length} previewed):
+                </h4>
+                <div style={{ maxHeight: '180px', overflowY: 'auto', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
+                  <table className="data-table" style={{ fontSize: '0.78rem' }}>
+                    <thead>
+                      <tr>
+                        <th>Emp Code</th>
+                        <th>Date</th>
+                        <th>In</th>
+                        <th>Out</th>
+                        <th>Status</th>
+                        <th>Auto OT (Bahrain)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {csvPreview.map((p, idx) => (
+                        <tr key={idx}>
+                          <td><strong>{p.empCode}</strong></td>
+                          <td>{p.date}</td>
+                          <td>{p.inTime}</td>
+                          <td>{p.outTime}</td>
+                          <td>{p.status}</td>
+                          <td>
+                            {p.otHours > 0 ? (
+                              <span className="badge badge-pink">+{p.otHours} hrs</span>
+                            ) : (
+                              '0'
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </form>
+        )}
 
-          {/* Live Preview */}
-          {csvPreview.length > 0 && (
-            <div style={{ marginTop: '1rem' }}>
-              <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--accent-pink)' }}>
-                Preview Parsed Records ({csvPreview.length} previewed):
-              </h4>
-              <div style={{ maxHeight: '180px', overflowY: 'auto', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
-                <table className="data-table" style={{ fontSize: '0.78rem' }}>
+        {/* TAB 2: IMPORTED BATCHES & ROLLBACK HISTORY */}
+        {activeImportTab === 'history' && (
+          <div>
+            <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+                  Biometric Import Batches
+                </h4>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
+                  Manage and rollback previously imported attendance CSV batches.
+                </p>
+              </div>
+              <span className="badge badge-primary">{importBatches.length} Total Batches</span>
+            </div>
+
+            {importBatches.length === 0 ? (
+              <div style={{ padding: '3rem', textAlign: 'center', background: '#f8fafc', borderRadius: 'var(--radius-sm)', border: '1px dashed #cbd5e1' }}>
+                <Layers size={36} color="#94a3b8" style={{ margin: '0 auto 0.5rem' }} />
+                <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>No Biometric Batches Found</div>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                  Upload a CSV file to create your first batch with name and timestamp tracking.
+                </p>
+                <button className="btn btn-sm btn-primary" onClick={() => setActiveImportTab('upload')} style={{ marginTop: '0.5rem' }}>
+                  Upload First Batch
+                </button>
+              </div>
+            ) : (
+              <div style={{ maxHeight: '380px', overflowY: 'auto', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
+                <table className="data-table" style={{ fontSize: '0.8rem', width: '100%' }}>
                   <thead>
-                    <tr>
-                      <th>Emp Code</th>
-                      <th>Date</th>
-                      <th>In</th>
-                      <th>Out</th>
-                      <th>Status</th>
-                      <th>Auto OT (Bahrain)</th>
+                    <tr style={{ background: '#f8fafc' }}>
+                      <th style={{ textAlign: 'left' }}>Batch Name &amp; Code</th>
+                      <th style={{ textAlign: 'left' }}>Imported Timestamp</th>
+                      <th>Imported By</th>
+                      <th>Punches</th>
+                      <th style={{ textAlign: 'right' }}>Rollback Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {csvPreview.map((p, idx) => (
-                      <tr key={idx}>
-                        <td><strong>{p.empCode}</strong></td>
-                        <td>{p.date}</td>
-                        <td>{p.inTime}</td>
-                        <td>{p.outTime}</td>
-                        <td>{p.status}</td>
+                    {importBatches.map((b) => (
+                      <tr key={b.id}>
+                        <td style={{ textAlign: 'left' }}>
+                          <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>
+                            {b.batch_name}
+                          </div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.15rem' }}>
+                            <Tag size={11} color="#6366f1" />
+                            <code>{b.batch_code}</code>
+                            {b.file_name && <span>• {b.file_name}</span>}
+                          </div>
+                        </td>
+                        <td style={{ textAlign: 'left' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600 }}>
+                            <Calendar size={13} color="#64748b" />
+                            {new Date(b.imported_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <Clock size={12} />
+                            {new Date(b.imported_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </td>
                         <td>
-                          {p.otHours > 0 ? (
-                            <span className="badge badge-pink">+{p.otHours} hrs</span>
-                          ) : (
-                            '0'
-                          )}
+                          <span className="badge badge-secondary" style={{ fontSize: '0.7rem' }}>
+                            {b.imported_by || 'admin'}
+                          </span>
+                        </td>
+                        <td>
+                          <span
+                            style={{
+                              padding: '0.2rem 0.5rem',
+                              borderRadius: '9999px',
+                              background: '#eff6ff',
+                              border: '1px solid #bfdbfe',
+                              color: '#1d4ed8',
+                              fontWeight: 800,
+                              fontSize: '0.75rem'
+                            }}
+                          >
+                            {b.current_punches_count ?? b.record_count} punches
+                          </span>
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleDeleteBatch(b)}
+                            disabled={isBatchDeleting}
+                            style={{
+                              padding: '0.3rem 0.65rem',
+                              fontSize: '0.75rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.35rem',
+                              fontWeight: 700
+                            }}
+                            title="Delete this batch and rollback all associated punches"
+                          >
+                            <Trash2 size={13} /> Delete Batch
+                          </button>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-            </div>
-          )}
-        </form>
+            )}
+          </div>
+        )}
       </Modal>
 
       {/* 3. MANUAL PUNCH MODAL */}
