@@ -20,6 +20,10 @@ Set-Location $workspaceRoot
 Write-Host "3. Copying dist assets..."
 Copy-Item -Path "$workspaceRoot\frontend\dist\index.html" -Destination "$workspaceRoot\index.html" -Force
 Copy-Item -Path "$workspaceRoot\frontend\dist\assets\*" -Destination "$workspaceRoot\assets\" -Force
+Copy-Item -Path "$workspaceRoot\frontend\dist\BAHRAIN_SMART_CARD_SETUP_GUIDE.html" -Destination "$workspaceRoot\BAHRAIN_SMART_CARD_SETUP_GUIDE.html" -Force
+if (Test-Path "$workspaceRoot\frontend\dist\downloads") {
+    Copy-Item -Path "$workspaceRoot\frontend\dist\downloads" -Destination "$workspaceRoot\downloads" -Recurse -Force
+}
 
 Write-Host "4. Staging files for deployment package..."
 Copy-Item -Path "$workspaceRoot\index.html" -Destination "$stagingDir\" -Force
@@ -27,10 +31,14 @@ Copy-Item -Path "$workspaceRoot\.htaccess" -Destination "$stagingDir\" -Force
 Copy-Item -Path "$workspaceRoot\api.php" -Destination "$stagingDir\" -Force
 Copy-Item -Path "$workspaceRoot\favicon.svg" -Destination "$stagingDir\" -Force
 Copy-Item -Path "$workspaceRoot\icons.svg" -Destination "$stagingDir\" -Force
+Copy-Item -Path "$workspaceRoot\BAHRAIN_SMART_CARD_SETUP_GUIDE.html" -Destination "$stagingDir\" -Force
 
 Copy-Item -Path "$workspaceRoot\assets" -Destination "$stagingDir\" -Recurse -Force
 Copy-Item -Path "$workspaceRoot\api" -Destination "$stagingDir\" -Recurse -Force
 Copy-Item -Path "$workspaceRoot\backend" -Destination "$stagingDir\" -Recurse -Force
+if (Test-Path "$workspaceRoot\downloads") {
+    Copy-Item -Path "$workspaceRoot\downloads" -Destination "$stagingDir\" -Recurse -Force
+}
 
 # Clean any cache or temporary files in staging backend
 if (Test-Path "$stagingDir\backend\.git") { Remove-Item "$stagingDir\backend\.git" -Recurse -Force }

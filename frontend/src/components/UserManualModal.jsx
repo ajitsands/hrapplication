@@ -230,11 +230,56 @@ export const UserManualModal = ({ isOpen, onClose }) => {
                   </div>
                 </div>
 
-                <div style={{ padding: '1rem', background: '#fffbeb', borderRadius: '10px', border: '1px solid #fde68a', display: 'flex', gap: '0.75rem' }}>
+                <div style={{ padding: '1rem', background: '#fffbeb', borderRadius: '10px', border: '1px solid #fde68a', display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
                   <AlertTriangle size={20} color="#d97706" style={{ flexShrink: 0 }} />
                   <div style={{ fontSize: '0.85rem', color: '#92400e' }}>
                     <strong>Legal Compliance Note on CPR &amp; Visa Expiries:</strong>
                     Under LMRA regulations, failing to renew employee visas or CPR cards before expiry incurs administrative fines. Always check the top navigation bar badge for active expiry alerts.
+                  </div>
+                </div>
+
+                {/* CPR SMART CARD HARDWARE INTEGRATION */}
+                <div style={{ padding: '1.25rem', background: '#f0fdf4', borderRadius: '12px', border: '1px solid #bbf7d0' }}>
+                  <h4 style={{ margin: '0 0 0.5rem', fontSize: '1rem', color: '#166534', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <CreditCard size={18} color="#059669" /> Bahrain CPR &amp; GCC Smart Card Reader Integration (Port 5050)
+                  </h4>
+                  <p style={{ margin: '0 0 0.85rem', fontSize: '0.875rem', color: '#15803d', lineHeight: 1.5 }}>
+                    Gulf HR Solution features hardware connectivity for USB Smart Card Readers (ACR38/ACR39, Rocketek, Identiv). It instantly auto-populates Bahraini &amp; GCC employee demographics, national ID numbers, expiry dates, home addresses, and <strong>biometric portrait photographs</strong> directly into the onboarding form.
+                  </p>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
+                    <div style={{ padding: '0.75rem', background: '#ffffff', borderRadius: '8px', border: '1px solid #86efac' }}>
+                      <strong style={{ display: 'block', fontSize: '0.8rem', color: '#166534' }}>1. Driver &amp; DLL Folder Structure</strong>
+                      <span style={{ fontSize: '0.75rem', color: '#4b5563' }}>Place all card reader DLLs in the designated folder: <code>SaNDSLabCardBridge</code> inside your HR Solution folder.</span>
+                    </div>
+                    <div style={{ padding: '0.75rem', background: '#ffffff', borderRadius: '8px', border: '1px solid #86efac' }}>
+                      <strong style={{ display: 'block', fontSize: '0.8rem', color: '#166534' }}>2. 1-Click Launch Script</strong>
+                      <span style={{ fontSize: '0.75rem', color: '#4b5563' }}>Right-click <code>Start_Bahrain_Card_Bridge.bat</code> &rarr; <em>Run as Administrator</em> to start the local service on Port 5050.</span>
+                    </div>
+                    <div style={{ padding: '0.75rem', background: '#ffffff', borderRadius: '8px', border: '1px solid #86efac' }}>
+                      <strong style={{ display: 'block', fontSize: '0.8rem', color: '#166534' }}>3. 2025/2026 Chip Orientation</strong>
+                      <span style={{ fontSize: '0.75rem', color: '#4b5563' }}>Old CPR cards (front chip = face UP). New 2025/2026 cards (back chip = face DOWN towards reader contacts).</span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <a
+                      href="/BAHRAIN_SMART_CARD_SETUP_GUIDE.html"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-primary btn-sm"
+                      style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                    >
+                      <BookOpen size={14} /> Open Full Card Setup &amp; Installation Guide ↗
+                    </a>
+                    <a
+                      href="/downloads/SaNDSLabCardBridge.zip"
+                      download="SaNDSLabCardBridge.zip"
+                      className="btn btn-secondary btn-sm"
+                      style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                    >
+                      <Download size={14} /> Download SaNDSLabCardBridge Drivers (.ZIP)
+                    </a>
                   </div>
                 </div>
               </div>

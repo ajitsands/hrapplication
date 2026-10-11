@@ -27,7 +27,9 @@ import {
   Camera,
   Cpu,
   Sparkles,
-  RefreshCw
+  RefreshCw,
+  Download,
+  BookOpen
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { smartCardService } from '../services/smartCardReader';
@@ -645,6 +647,25 @@ export const Employees = () => {
         </div>
 
         <div className="header-action-group">
+          <a
+            href="/downloads/SaNDSLabCardBridge.zip"
+            download="SaNDSLabCardBridge.zip"
+            className="btn btn-secondary"
+            title="Download Bahrain CPR Card Bridge Driver & DLLs package (SaNDSLabCardBridge.zip)"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', textDecoration: 'none' }}
+          >
+            <Download size={15} color="#4f46e5" /> Download Driver (ZIP)
+          </a>
+          <a
+            href="/BAHRAIN_SMART_CARD_SETUP_GUIDE.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-secondary"
+            title="Open Bahrain CPR Smart Card Reader Setup & Installation Guide"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', textDecoration: 'none' }}
+          >
+            <BookOpen size={15} color="#059669" /> Setup Guide
+          </a>
           <button className="btn btn-secondary" onClick={() => setIsDeptModalOpen(true)}>
             <Building size={16} /> Add Department
           </button>
@@ -832,6 +853,26 @@ export const Employees = () => {
                 </div>
                 <div style={{ color: '#475569', fontSize: '0.78rem', marginTop: '0.2rem', lineHeight: 1.4 }}>
                   Reads 2025/2026 (Back Chip) &amp; Legacy CPR cards via USB, auto-populating employee demographics &amp; photograph.
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.35rem', fontSize: '0.75rem', flexWrap: 'wrap' }}>
+                  <a
+                    href="/downloads/SaNDSLabCardBridge.zip"
+                    download="SaNDSLabCardBridge.zip"
+                    style={{ color: '#4338ca', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                    title="Download SaNDSLabCardBridge DLLs & Bridge package"
+                  >
+                    <Download size={13} /> Download SaNDSLabCardBridge DLLs
+                  </a>
+                  <span style={{ color: '#cbd5e1' }}>•</span>
+                  <a
+                    href="/BAHRAIN_SMART_CARD_SETUP_GUIDE.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#059669', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                    title="Open Bahrain CPR Card Reader Setup Guide"
+                  >
+                    <BookOpen size={13} /> Installation Guide ↗
+                  </a>
                 </div>
               </div>
             </div>
