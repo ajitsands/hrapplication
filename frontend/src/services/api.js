@@ -1,6 +1,6 @@
 // frontend/src/services/api.js
 
-const API_BASE = '/api';
+const API_BASE = import.meta.env.DEV ? '/api' : '/api.php';
 
 export const api = {
   getToken: () => localStorage.getItem('gulf_hr_token') || '',
