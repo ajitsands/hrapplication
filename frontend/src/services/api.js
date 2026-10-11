@@ -32,6 +32,8 @@ export const api = {
 
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
+      headers['X-Api-Token'] = token;
+      headers['X-Auth-Token'] = token;
     }
 
     const config = {
@@ -39,8 +41,14 @@ export const api = {
       headers
     };
 
+    let targetUrl = `${API_BASE}${endpoint}`;
+    if (token) {
+      const sep = targetUrl.includes('?') ? '&' : '?';
+      targetUrl = `${targetUrl}${sep}token=${encodeURIComponent(token)}`;
+    }
+
     try {
-      const res = await fetch(`${API_BASE}${endpoint}`, config);
+      const res = await fetch(targetUrl, config);
       const data = await res.json();
       
       if (!res.ok) {
