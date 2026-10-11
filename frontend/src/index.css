@@ -1661,26 +1661,43 @@ body.printing-manual {
     background: transparent !important;
   }
 
-  /* Single-Page SOP Chapter Sheet */
-  .manual-chapter-sheet {
+  /* Single-Page SOP Chapter Sheet (Print 1 Topic) */
+  .manual-single-sheet {
     box-sizing: border-box !important;
     width: 100% !important;
     max-width: 190mm !important;
     margin: 0 auto !important;
-    padding: 3mm 5mm !important;
+    padding: 2.5mm 4.5mm !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    page-break-before: avoid !important;
+    break-before: avoid !important;
+    font-size: 7.2pt !important;
+    line-height: 1.25 !important;
+  }
+
+  /* All Topics SOP Chapter Sheets (Print All - 1 per page) */
+  .manual-all-print-container .manual-chapter-sheet {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 190mm !important;
+    margin: 0 auto !important;
+    padding: 2.5mm 4.5mm !important;
     background: #ffffff !important;
     color: #0f172a !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     page-break-after: always !important;
     break-after: page !important;
-    page-break-before: avoid !important;
-    break-before: avoid !important;
-    font-size: 7.5pt !important;
-    line-height: 1.28 !important;
+    font-size: 7.2pt !important;
+    line-height: 1.25 !important;
   }
 
-  .manual-chapter-sheet:last-child {
+  .manual-all-print-container .manual-chapter-sheet:last-child {
     page-break-after: avoid !important;
     break-after: avoid !important;
   }
@@ -1718,6 +1735,7 @@ body.printing-manual {
     line-height: 1.2 !important;
   }
 
+  .manual-single-sheet h2,
   .manual-chapter-sheet h2 {
     font-size: 11.5pt !important;
     margin: 0 0 1.5mm 0 !important;
@@ -1725,40 +1743,47 @@ body.printing-manual {
     line-height: 1.2 !important;
   }
 
+  .manual-single-sheet h3,
   .manual-chapter-sheet h3 {
-    font-size: 9pt !important;
+    font-size: 8.8pt !important;
     margin: 1.5mm 0 1mm 0 !important;
     color: #0f172a !important;
   }
 
+  .manual-single-sheet h4,
   .manual-chapter-sheet h4 {
     font-size: 8pt !important;
     margin: 0.8mm 0 0.8mm 0 !important;
   }
 
+  .manual-single-sheet p,
   .manual-chapter-sheet p {
-    font-size: 7.5pt !important;
-    margin-bottom: 1.5mm !important;
-    line-height: 1.28 !important;
+    font-size: 7.2pt !important;
+    margin-bottom: 1.2mm !important;
+    line-height: 1.25 !important;
     color: #334155 !important;
   }
 
+  .manual-single-sheet ol,
   .manual-chapter-sheet ol,
+  .manual-single-sheet ul,
   .manual-chapter-sheet ul {
     margin-top: 0.8mm !important;
-    margin-bottom: 1.5mm !important;
+    margin-bottom: 1.2mm !important;
     padding-left: 4.5mm !important;
-    font-size: 7.5pt !important;
-    line-height: 1.3 !important;
+    font-size: 7.2pt !important;
+    line-height: 1.25 !important;
   }
 
+  .manual-single-sheet li,
   .manual-chapter-sheet li {
-    margin-bottom: 0.6mm !important;
+    margin-bottom: 0.5mm !important;
   }
 
+  .manual-single-sheet .badge,
   .manual-chapter-sheet .badge {
     font-size: 6.5pt !important;
-    padding: 0.6mm 2mm !important;
+    padding: 0.5mm 2mm !important;
     border-radius: 4px !important;
     margin-bottom: 1mm !important;
     display: inline-block !important;
@@ -1766,13 +1791,16 @@ body.printing-manual {
     color: #ffffff !important;
   }
 
+  .manual-single-sheet table,
   .manual-chapter-sheet table {
     font-size: 6.8pt !important;
     width: 100% !important;
     border-collapse: collapse !important;
   }
 
+  .manual-single-sheet th,
   .manual-chapter-sheet th,
+  .manual-single-sheet td,
   .manual-chapter-sheet td {
     padding: 0.8mm 1.5mm !important;
     border: 1px solid #cbd5e1 !important;
@@ -1819,8 +1847,36 @@ body.printing-manual {
   border-image: linear-gradient(90deg, #2563eb, #ec4899) 1;
 }
 
+.manual-body-workspace {
+  display: flex !important;
+  flex: 1 !important;
+  overflow: hidden !important;
+}
+
+.manual-sidebar {
+  width: 320px !important;
+  border-right: 1px solid var(--border-subtle, #e2e8f0);
+  background: #f8fafc;
+  display: flex !important;
+  flex-direction: column !important;
+  flex-shrink: 0 !important;
+}
+
+.manual-content-viewport {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  padding: 2rem !important;
+  background: #ffffff;
+  color: #1e293b;
+}
+
 .manual-print-doc-header {
   display: none;
 }
+
+.manual-single-sheet {
+  width: 100%;
+}
+
 
 

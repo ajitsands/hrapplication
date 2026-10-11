@@ -662,9 +662,19 @@ export const UserManualModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* BODY WORKSPACE */}
-        <div className="manual-body-workspace">
+        <div className="manual-body-workspace" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
           {/* LEFT SIDEBAR: TOPICS NAV */}
-          <div className="manual-sidebar no-print">
+          <div
+            className="manual-sidebar no-print"
+            style={{
+              width: '320px',
+              borderRight: '1px solid var(--border-subtle, #e2e8f0)',
+              background: '#f8fafc',
+              display: 'flex',
+              flexDirection: 'column',
+              flexShrink: 0
+            }}
+          >
             {/* Search Input */}
             <div style={{ padding: '0.85rem 1rem', borderBottom: '1px solid var(--border-subtle, #e2e8f0)' }}>
               <div style={{ position: 'relative' }}>
@@ -730,8 +740,17 @@ export const UserManualModal = ({ isOpen, onClose }) => {
           </div>
 
           {/* RIGHT VIEWPORT: TOPIC CONTENT */}
-          <div className="manual-content-viewport">
-                        {printTarget === 'all' ? (
+          <div
+            className="manual-content-viewport"
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: '2rem',
+              background: '#ffffff',
+              color: '#1e293b'
+            }}
+          >
+            {printTarget === 'all' ? (
               <div className="manual-all-print-container">
                 {topics.map((t) => (
                   <div key={t.id} className="manual-chapter-sheet">
@@ -752,7 +771,7 @@ export const UserManualModal = ({ isOpen, onClose }) => {
                 ))}
               </div>
             ) : (
-              <div className="manual-chapter-sheet">
+              <div className="manual-single-sheet">
                 <div className="manual-print-doc-header">
                   <div className="manual-doc-header-inner">
                     <div>
