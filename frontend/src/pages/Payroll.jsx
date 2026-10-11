@@ -276,49 +276,53 @@ export const Payroll = () => {
   return (
     <div>
       {/* Page Header */}
-      <div className="page-header">
+      <div className="page-header" style={{ marginBottom: '1.25rem', alignItems: 'center' }}>
         <div className="page-title-group">
           <h2>Payroll Processing & A5 Payslip Generator</h2>
           <p>Bahrain Labor Law compliant calculations: GOSI, LMRA, Overtime multipliers, Loans & Allowances</p>
         </div>
 
-        {isAdminOrHr && (
-          <div className="header-action-group">
-            <button className="btn btn-gold" onClick={() => setIsCalcModalOpen(true)}>
+        <div className="header-action-group" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          {/* Period Selector Tabs */}
+          {periods.length > 0 && (
+            <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', alignItems: 'center' }}>
+              {periods.map((p) => {
+                const isSelected = selectedPeriod?.id === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => loadPeriodPayslips(p.id)}
+                    className="btn"
+                    style={{
+                      background: isSelected ? 'var(--primary)' : '#ffffff',
+                      color: isSelected ? '#ffffff' : 'var(--text-primary)',
+                      border: `1px solid ${isSelected ? 'var(--primary)' : 'var(--border-subtle)'}`,
+                      boxShadow: isSelected ? '0 2px 6px rgba(37,99,235,0.25)' : 'none',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                      padding: '0.45rem 1rem',
+                      borderRadius: 'var(--radius-md)',
+                      textAlign: 'left'
+                    }}
+                  >
+                    <div style={{ fontSize: '0.825rem', fontWeight: 700, lineHeight: 1.2 }}>{p.title}</div>
+                    <div style={{ fontSize: '0.72rem', opacity: isSelected ? 0.92 : 0.75, display: 'flex', gap: '0.4rem', marginTop: '0.15rem' }}>
+                      <span>{p.total_employees} Employees</span>
+                      <span>• {formatCurrency(p.total_net)}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {isAdminOrHr && (
+            <button className="btn btn-gold" onClick={() => setIsCalcModalOpen(true)} style={{ whiteSpace: 'nowrap' }}>
               <Calculator size={16} /> Run Salary Calculation Engine
             </button>
-          </div>
-        )}
-      </div>
-
-      {/* Period Selector Tabs */}
-      <div style={{ display: 'flex', gap: '0.65rem', overflowX: 'auto', paddingBottom: '0.75rem', marginBottom: '1.25rem' }}>
-        {periods.map((p) => {
-          const isSelected = selectedPeriod?.id === p.id;
-          return (
-            <button
-              key={p.id}
-              onClick={() => loadPeriodPayslips(p.id)}
-              className="btn"
-              style={{
-                background: isSelected ? 'var(--primary)' : '#ffffff',
-                color: isSelected ? '#ffffff' : 'var(--text-primary)',
-                border: `1px solid ${isSelected ? 'var(--primary)' : 'var(--border-subtle)'}`,
-                boxShadow: isSelected ? 'var(--shadow-md)' : 'none',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-start',
-                padding: '0.65rem 1.15rem'
-              }}
-            >
-              <div style={{ fontSize: '0.875rem', fontWeight: 700 }}>{p.title}</div>
-              <div style={{ fontSize: '0.75rem', opacity: 0.85, display: 'flex', gap: '0.5rem', marginTop: '0.15rem' }}>
-                <span>{p.total_employees} Employees</span>
-                <span>• {formatCurrency(p.total_net)}</span>
-              </div>
-            </button>
-          );
-        })}
+          )}
+        </div>
       </div>
 
       {/* Selected Period Summary Banner */}
