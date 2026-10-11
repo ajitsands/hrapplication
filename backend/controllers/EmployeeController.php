@@ -311,73 +311,9 @@ class EmployeeController extends Controller {
 
     /**
      * Download or stream the SaNDSLabCardBridge.zip driver package.
-     * If the static zip file is missing on the server, builds it on the fly.
      */
     public function downloadCardBridge(): void {
-        $workspaceRoot = realpath(__DIR__ . '/../../');
-        if (!$workspaceRoot) {
-            $workspaceRoot = dirname(dirname(__DIR__));
-        }
-
-        $zipPath = $workspaceRoot . '/downloads/SaNDSLabCardBridge.zip';
-        $sourceDir = $workspaceRoot . '/SaNDSLabCardBridge';
-
-        if (!is_dir($workspaceRoot . '/downloads')) {
-            @mkdir($workspaceRoot . '/downloads', 0755, true);
-        }
-
-        // If zip doesn't exist or is tiny (< 10KB), generate it from SaNDSLabCardBridge
-        if (!file_exists($zipPath) || filesize($zipPath) < 10000) {
-            if (class_exists('\\ZipArchive') && is_dir($sourceDir)) {
-                $zip = new \ZipArchive();
-                if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
-                    $files = new \RecursiveIteratorIterator(
-                        new \RecursiveDirectoryIterator($sourceDir, \RecursiveDirectoryIterator::SKIP_DOTS),
-                        \RecursiveIteratorIterator::SELF_FIRST
-                    );
-
-                    foreach ($files as $file) {
-                        $filePath = $file->getRealPath();
-                        $relativePath = 'SaNDSLabCardBridge/' . substr($filePath, strlen($sourceDir) + 1);
-                        $relativePath = str_replace('\\', '/', $relativePath);
-                        if ($file->isDir()) {
-                            $zip->addEmptyDir($relativePath);
-                        } else {
-                            $zip->addFile($filePath, $relativePath);
-                        }
-                    }
-
-                    if (file_exists($workspaceRoot . '/Start_Bahrain_Card_Bridge.bat')) {
-                        $zip->addFile($workspaceRoot . '/Start_Bahrain_Card_Bridge.bat', 'Start_Bahrain_Card_Bridge.bat');
-                    }
-                    if (file_exists($workspaceRoot . '/BAHRAIN_SMART_CARD_SETUP_GUIDE.html')) {
-                        $zip->addFile($workspaceRoot . '/BAHRAIN_SMART_CARD_SETUP_GUIDE.html', 'BAHRAIN_SMART_CARD_SETUP_GUIDE.html');
-                    }
-                    $zip->close();
-                }
-            }
-        }
-
-        if (file_exists($zipPath) && filesize($zipPath) > 10000) {
-            while (ob_get_level()) {
-                ob_end_clean();
-            }
-            header('Content-Description: File Transfer');
-            header('Content-Type: application/zip');
-            header('Content-Disposition: attachment; filename="SaNDSLabCardBridge.zip"');
-            header('Content-Transfer-Encoding: binary');
-            header('Expires: 0');
-            header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-            header('Pragma: public');
-            header('Content-Length: ' . filesize($zipPath));
-            readfile($zipPath);
-            exit;
-        } else {
-            http_response_code(404);
-            header('Content-Type: text/plain');
-            echo "Error: SaNDSLabCardBridge package is currently unavailable. Please contact system administrator.";
-            exit;
-        }
+        require_once dirname(__DIR__, 2) . '/download_bridge.php';
     }
 }
 
