@@ -1,6 +1,16 @@
 // frontend/src/services/api.js
 
-const API_BASE = import.meta.env.DEV ? '/api' : '/api.php';
+const getApiBase = () => {
+  if (import.meta.env.DEV) {
+    return '/api';
+  }
+  if (typeof window !== 'undefined' && window.location.hostname.includes('trackmyteam.us')) {
+    return 'https://trackmyteam.us/hr.trackmyteam.us/api.php';
+  }
+  return '/api.php';
+};
+
+const API_BASE = getApiBase();
 
 export const api = {
   getToken: () => localStorage.getItem('gulf_hr_token') || '',

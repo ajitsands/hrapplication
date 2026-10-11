@@ -40,14 +40,11 @@ class Router {
     public function dispatch(string $requestUri, string $requestMethod): void {
         $parsedUri = parse_url($requestUri, PHP_URL_PATH);
         
-        // Remove script subpath if running in a subdirectory or standard URL
-        $scriptName = dirname($_SERVER['SCRIPT_NAME'] ?? '');
-        if ($scriptName !== '/' && $scriptName !== '\\' && $scriptName !== '.' && strpos($parsedUri, $scriptName) === 0) {
-            $parsedUri = substr($parsedUri, strlen($scriptName));
-        }
-
-        // Remove index.php if present
-        $parsedUri = preg_replace('#^/index\.php#i', '', $parsedUri);
+        // Strip any path up to and including the last api.php or index.php (e.g. /hr.trackmyteam.us/api.php/foo -> /foo)
+        $parsedUri = preg_replace('#^.*(?:api\.php|index\.php)#i', '', $parsedUri);
+        
+        // Remove known subfolder prefixes if any remain
+        $parsedUri = preg_replace('#^/hr\.trackmyteam\.us#i', '', $parsedUri);
         
         $uri = $this->normalizePath($parsedUri);
         $method = strtoupper($requestMethod);
