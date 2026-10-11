@@ -210,16 +210,61 @@ export const MonthlyAttendanceReport = () => {
     showToast('Success', 'Attendance report CSV exported successfully', 'success');
   };
 
+  // Print hooks to handle both Print Matrix button and browser Ctrl+P
+  useEffect(() => {
+    const handleBeforePrint = () => {
+      document.body.classList.add('printing-attendance-matrix');
+    };
+    const handleAfterPrint = () => {
+      document.body.classList.remove('printing-attendance-matrix');
+    };
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+  }, []);
+
   // Print function
   const handlePrint = () => {
-    window.print();
+    document.body.classList.add('printing-attendance-matrix');
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => {
+        document.body.classList.remove('printing-attendance-matrix');
+      }, 1500);
+    }, 50);
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+    <div className="monthly-matrix-report-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      {/* 0. PRINT-ONLY EXECUTIVE AUDIT & RECORD HEADER */}
+      <div className="matrix-print-header">
+        <div>
+          <div className="print-company-name">
+            {settings?.company_name || 'SaNDS Lab Middle East W.L.L.'}
+          </div>
+          <div className="print-company-sub">
+            BAHRAIN &amp; GULF LABOR LAW COMPLIANT SYSTEM • ATTENDANCE &amp; OVERTIME ENGINE
+          </div>
+        </div>
+
+        <div className="matrix-print-title-box">
+          <div className="print-title">MONTHLY ATTENDANCE &amp; OVERTIME MATRIX</div>
+          <div className="print-meta-row">
+            <span>Period: <strong>{reportData?.month_title || new Date(year, month - 1).toLocaleString('default', { month: 'long', year: 'numeric' })}</strong></span>
+            <span>•</span>
+            <span>Dept: <strong>{selectedDept ? (departments.find(d => String(d.id) === String(selectedDept))?.name || 'Department') : 'All Departments'}</strong></span>
+            <span>•</span>
+            <span>Monitored: <strong>{filteredSheets.length} Staff</strong></span>
+          </div>
+        </div>
+      </div>
+
       {/* 1. TOP HEADER & FILTER BAR - LUMINOUS EXECUTIVE GRADIENT THEME */}
       <div
-        className="card"
+        className="card matrix-filter-card"
         style={{
           padding: '1.35rem 1.65rem',
           background: 'linear-gradient(135deg, #e0f2fe 0%, #eef2ff 35%, #faf5ff 68%, #fce7f3 100%)',
@@ -477,7 +522,7 @@ export const MonthlyAttendanceReport = () => {
       </div>
 
       {/* 2. KPI SUMMARY METRICS CARDS */}
-      <div className="grid-stats" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+      <div className="grid-stats matrix-kpi-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
         <div className="stat-card">
           <div className="stat-info">
             <div className="stat-label">Active Staff Monitored</div>
@@ -535,7 +580,7 @@ export const MonthlyAttendanceReport = () => {
 
       {/* 3. LEGEND STRIP */}
       <div
-        className="card"
+        className="card matrix-legend-card"
         style={{
           padding: '0.65rem 1rem',
           background: '#ffffff',
@@ -548,10 +593,11 @@ export const MonthlyAttendanceReport = () => {
           color: 'var(--text-secondary)'
         }}
       >
-        <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>Legend:</span>
+        <span className="legend-title" style={{ fontWeight: 800, color: 'var(--text-primary)' }}>Legend:</span>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+        <div className="matrix-legend-item" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
           <span
+            className="matrix-legend-badge badge-present"
             style={{
               padding: '0.15rem 0.4rem',
               borderRadius: '4px',
@@ -566,8 +612,9 @@ export const MonthlyAttendanceReport = () => {
           <span>Present (In / Out)</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+        <div className="matrix-legend-item" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
           <span
+            className="matrix-legend-badge badge-ot"
             style={{
               padding: '0.15rem 0.4rem',
               borderRadius: '4px',
@@ -582,8 +629,9 @@ export const MonthlyAttendanceReport = () => {
           <span>Overtime Logged</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+        <div className="matrix-legend-item" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
           <span
+            className="matrix-legend-badge badge-off"
             style={{
               padding: '0.15rem 0.4rem',
               borderRadius: '4px',
@@ -598,8 +646,9 @@ export const MonthlyAttendanceReport = () => {
           <span>Scheduled Rest Day / Weekend</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+        <div className="matrix-legend-item" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
           <span
+            className="matrix-legend-badge badge-leave"
             style={{
               padding: '0.15rem 0.4rem',
               borderRadius: '4px',
@@ -614,8 +663,9 @@ export const MonthlyAttendanceReport = () => {
           <span>Approved Leave</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+        <div className="matrix-legend-item" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
           <span
+            className="matrix-legend-badge badge-absent"
             style={{
               padding: '0.15rem 0.4rem',
               borderRadius: '4px',
@@ -630,8 +680,9 @@ export const MonthlyAttendanceReport = () => {
           <span>Absent</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+        <div className="matrix-legend-item" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
           <span
+            className="matrix-legend-badge badge-total"
             style={{
               padding: '0.15rem 0.4rem',
               borderRadius: '4px',
@@ -649,7 +700,7 @@ export const MonthlyAttendanceReport = () => {
 
       {/* 4. MAIN ATTENDANCE MATRIX TABLE */}
       <div
-        className="card"
+        className="card matrix-table-card"
         style={{
           padding: 0,
           overflowX: 'auto',
@@ -678,6 +729,7 @@ export const MonthlyAttendanceReport = () => {
           </div>
         ) : (
           <table
+            className="matrix-table"
             style={{
               width: '100%',
               borderCollapse: 'collapse',
@@ -690,6 +742,7 @@ export const MonthlyAttendanceReport = () => {
               <tr style={{ background: '#f8fafc', borderBottom: '2px solid var(--border-subtle)' }}>
                 {/* STICKY LEFT EMPLOYEE HEADER */}
                 <th
+                  className="matrix-col-emp"
                   style={{
                     position: 'sticky',
                     left: 0,
@@ -717,6 +770,7 @@ export const MonthlyAttendanceReport = () => {
                   return (
                     <th
                       key={d}
+                      className={`matrix-col-day ${isWeekend ? 'weekend-col' : ''}`}
                       style={{
                         padding: '0.5rem 0.25rem',
                         minWidth: '66px',
@@ -726,8 +780,8 @@ export const MonthlyAttendanceReport = () => {
                         color: isWeekend ? 'var(--danger)' : 'var(--text-primary)'
                       }}
                     >
-                      <div style={{ fontSize: '0.85rem', fontWeight: 800 }}>{d}</div>
-                      <div style={{ fontSize: '0.68rem', fontWeight: 700, opacity: 0.85 }}>
+                      <div className="day-num" style={{ fontSize: '0.85rem', fontWeight: 800 }}>{d}</div>
+                      <div className="day-dow" style={{ fontSize: '0.68rem', fontWeight: 700, opacity: 0.85 }}>
                         {dayLetters}
                       </div>
                     </th>
@@ -736,6 +790,7 @@ export const MonthlyAttendanceReport = () => {
 
                 {/* FINAL SUMMARY COLUMNS ON THE RIGHT (AS REQUESTED) */}
                 <th
+                  className="matrix-col-summary-present"
                   style={{
                     position: 'sticky',
                     right: 170,
@@ -750,10 +805,11 @@ export const MonthlyAttendanceReport = () => {
                   }}
                 >
                   <div>Present</div>
-                  <div style={{ fontSize: '0.65rem', fontWeight: 600 }}>Days</div>
+                  <div className="sub-header-label" style={{ fontSize: '0.65rem', fontWeight: 600 }}>Days</div>
                 </th>
 
                 <th
+                  className="matrix-col-summary-ot"
                   style={{
                     position: 'sticky',
                     right: 95,
@@ -767,10 +823,11 @@ export const MonthlyAttendanceReport = () => {
                   }}
                 >
                   <div>Total OT</div>
-                  <div style={{ fontSize: '0.65rem', fontWeight: 600 }}>Hours</div>
+                  <div className="sub-header-label" style={{ fontSize: '0.65rem', fontWeight: 600 }}>Hours</div>
                 </th>
 
                 <th
+                  className="matrix-col-summary-total"
                   style={{
                     position: 'sticky',
                     right: 0,
@@ -784,7 +841,7 @@ export const MonthlyAttendanceReport = () => {
                   }}
                 >
                   <div>Total Hrs</div>
-                  <div style={{ fontSize: '0.65rem', fontWeight: 600 }}>Worked (30d)</div>
+                  <div className="sub-header-label" style={{ fontSize: '0.65rem', fontWeight: 600 }}>Worked (30d)</div>
                 </th>
               </tr>
             </thead>
@@ -805,6 +862,7 @@ export const MonthlyAttendanceReport = () => {
                   >
                     {/* STICKY EMPLOYEE NAME CELL */}
                     <td
+                      className="matrix-col-emp"
                       style={{
                         position: 'sticky',
                         left: 0,
@@ -816,6 +874,7 @@ export const MonthlyAttendanceReport = () => {
                       }}
                     >
                       <div
+                        className="matrix-emp-name"
                         style={{
                           fontWeight: 800,
                           color: 'var(--text-primary)',
@@ -826,6 +885,7 @@ export const MonthlyAttendanceReport = () => {
                         {emp.first_name} {emp.last_name}
                       </div>
                       <div
+                        className="matrix-emp-sub"
                         style={{
                           fontSize: '0.7rem',
                           color: 'var(--text-muted)',
@@ -850,6 +910,7 @@ export const MonthlyAttendanceReport = () => {
                         return (
                           <td
                             key={d}
+                            className="matrix-cell-day"
                             style={{
                               padding: '0.35rem 0.2rem',
                               borderRight: '1px solid #f1f5f9',
@@ -857,7 +918,7 @@ export const MonthlyAttendanceReport = () => {
                               color: '#cbd5e1'
                             }}
                           >
-                            —
+                            <span className="matrix-status-empty">—</span>
                           </td>
                         );
                       }
@@ -872,6 +933,7 @@ export const MonthlyAttendanceReport = () => {
                       return (
                         <td
                           key={d}
+                          className={`matrix-cell-day ${isWeekend ? 'weekend-cell' : ''}`}
                           style={{
                             padding: '0.35rem 0.2rem',
                             borderRight: '1px solid #f1f5f9',
@@ -884,6 +946,7 @@ export const MonthlyAttendanceReport = () => {
                         >
                           {hasPunch ? (
                             <div
+                              className="matrix-punch-box"
                               style={{
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -898,6 +961,7 @@ export const MonthlyAttendanceReport = () => {
                               }}
                             >
                               <div
+                                className="matrix-in-time"
                                 style={{
                                   fontSize: '0.7rem',
                                   fontWeight: 800,
@@ -909,6 +973,7 @@ export const MonthlyAttendanceReport = () => {
                                 {inTime}
                               </div>
                               <div
+                                className="matrix-out-time"
                                 style={{
                                   fontSize: '0.7rem',
                                   fontWeight: 700,
@@ -922,6 +987,7 @@ export const MonthlyAttendanceReport = () => {
 
                               {otHours > 0 && (
                                 <div
+                                  className="matrix-ot-badge"
                                   style={{
                                     marginTop: '1px',
                                     padding: '0 3px',
@@ -940,6 +1006,7 @@ export const MonthlyAttendanceReport = () => {
                           ) : dayData.status === 'Weekend' ? (
                             otHours > 0 && inTime ? (
                               <div
+                                className="matrix-punch-box weekend-ot"
                                 style={{
                                   display: 'flex',
                                   flexDirection: 'column',
@@ -951,15 +1018,16 @@ export const MonthlyAttendanceReport = () => {
                                   padding: '0.2rem 0.25rem'
                                 }}
                               >
-                                <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#be123c' }}>
+                                <span className="matrix-in-time" style={{ fontSize: '0.65rem', fontWeight: 800, color: '#be123c' }}>
                                   {inTime}
                                 </span>
-                                <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#be123c' }}>
+                                <span className="matrix-ot-badge" style={{ fontSize: '0.62rem', fontWeight: 800, color: '#be123c' }}>
                                   +{otHours}h OT
                                 </span>
                               </div>
                             ) : (
                               <span
+                                className="matrix-status-pill pill-off"
                                 style={{
                                   display: 'inline-block',
                                   padding: '0.2rem 0.45rem',
@@ -976,6 +1044,7 @@ export const MonthlyAttendanceReport = () => {
                             )
                           ) : dayData.status === 'On Leave' ? (
                             <span
+                              className="matrix-status-pill pill-leave"
                               style={{
                                 display: 'inline-block',
                                 padding: '0.2rem 0.45rem',
@@ -991,6 +1060,7 @@ export const MonthlyAttendanceReport = () => {
                             </span>
                           ) : dayData.status === 'Holiday' ? (
                             <span
+                              className="matrix-status-pill pill-holiday"
                               style={{
                                 display: 'inline-block',
                                 padding: '0.2rem 0.45rem',
@@ -1006,6 +1076,7 @@ export const MonthlyAttendanceReport = () => {
                             </span>
                           ) : dayData.status === 'Absent' ? (
                             <span
+                              className="matrix-status-pill pill-absent"
                               style={{
                                 display: 'inline-block',
                                 padding: '0.2rem 0.45rem',
@@ -1020,7 +1091,7 @@ export const MonthlyAttendanceReport = () => {
                               ABS
                             </span>
                           ) : (
-                            <span style={{ color: '#cbd5e1' }}>—</span>
+                            <span className="matrix-status-empty" style={{ color: '#cbd5e1' }}>—</span>
                           )}
                         </td>
                       );
@@ -1029,6 +1100,7 @@ export const MonthlyAttendanceReport = () => {
                     {/* RIGHT SUMMARY COLUMNS (EXACT USER REQUIREMENT) */}
                     {/* 1. Present Days */}
                     <td
+                      className="matrix-col-summary-present"
                       style={{
                         position: 'sticky',
                         right: 170,
@@ -1043,6 +1115,7 @@ export const MonthlyAttendanceReport = () => {
                       }}
                     >
                       <span
+                        className="matrix-summary-pill pill-present"
                         style={{
                           padding: '0.2rem 0.5rem',
                           borderRadius: '4px',
@@ -1056,6 +1129,7 @@ export const MonthlyAttendanceReport = () => {
 
                     {/* 2. Total OT Hours */}
                     <td
+                      className="matrix-col-summary-ot"
                       style={{
                         position: 'sticky',
                         right: 95,
@@ -1069,6 +1143,7 @@ export const MonthlyAttendanceReport = () => {
                       }}
                     >
                       <span
+                        className="matrix-summary-pill pill-ot"
                         style={{
                           padding: '0.2rem 0.45rem',
                           borderRadius: '4px',
@@ -1082,6 +1157,7 @@ export const MonthlyAttendanceReport = () => {
 
                     {/* 3. Final Column: Total hrs Worked based on 30 days */}
                     <td
+                      className="matrix-col-summary-total"
                       style={{
                         position: 'sticky',
                         right: 0,
@@ -1095,6 +1171,7 @@ export const MonthlyAttendanceReport = () => {
                       }}
                     >
                       <div
+                        className="matrix-summary-pill pill-total"
                         style={{
                           padding: '0.25rem 0.55rem',
                           borderRadius: '6px',
@@ -1112,6 +1189,22 @@ export const MonthlyAttendanceReport = () => {
             </tbody>
           </table>
         )}
+      </div>
+
+      {/* 5. PRINT-ONLY SIGNATURE SECTION */}
+      <div className="matrix-print-signatures">
+        <div className="matrix-sig-box">
+          <div className="sig-line">Prepared By (HR &amp; Biometrics Officer)</div>
+          <div className="sig-dept">Human Resources Department</div>
+        </div>
+        <div className="matrix-sig-box">
+          <div className="sig-line">Verified By (Department Head / HOD)</div>
+          <div className="sig-dept">Department Operations</div>
+        </div>
+        <div className="matrix-sig-box">
+          <div className="sig-line">Authorized Signatory (General Manager)</div>
+          <div className="sig-dept">Executive Management</div>
+        </div>
       </div>
     </div>
   );

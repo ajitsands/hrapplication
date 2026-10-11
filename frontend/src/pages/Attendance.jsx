@@ -621,6 +621,7 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
 
       {/* SUB-NAVIGATION TABS FOR ATTENDANCE & SHIFTS */}
       <div
+        className="attendance-subnav-tabs no-print"
         style={{
           display: 'flex',
           gap: '0.5rem',

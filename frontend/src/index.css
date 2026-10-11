@@ -1289,6 +1289,11 @@ h1, h2, h3, h4, h5, h6 {
   margin: 5mm;
 }
 
+@page attendance-matrix {
+  size: A4 landscape;
+  margin: 5mm;
+}
+
 @page sop-manual {
   size: portrait;
   margin: 8mm 10mm;
@@ -1296,6 +1301,10 @@ h1, h2, h3, h4, h5, h6 {
 
 body.printing-payslip {
   page: a5-payslip;
+}
+
+body.printing-attendance-matrix {
+  page: attendance-matrix;
 }
 
 body.printing-manual {
@@ -1326,6 +1335,10 @@ body.printing-manual {
 
   body.printing-payslip {
     page: a5-payslip !important;
+  }
+
+  body.printing-attendance-matrix {
+    page: attendance-matrix !important;
   }
 
   body.printing-manual {
@@ -1591,7 +1604,7 @@ body.printing-manual {
     color: #475569 !important;
   }
 
-  /* 6. Landscape Attendance Matrix Sheet Support */
+  /* 6. Landscape Attendance Matrix Sheet Support (Single employee sheet) */
   .attendance-landscape-sheet {
     box-shadow: none !important;
     border: 1.5px solid #000 !important;
@@ -1608,6 +1621,474 @@ body.printing-manual {
   .landscape-matrix-table td {
     padding: 2px 1px !important;
     border: 1px solid #333 !important;
+  }
+
+  /* 6.1 Landscape A4 Monthly Attendance & Overtime Matrix Print Engine */
+  body.printing-attendance-matrix {
+    page: attendance-matrix !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  /* Universal print resets when printing attendance matrix */
+  body.printing-attendance-matrix #root,
+  body.printing-attendance-matrix .app-container,
+  body.printing-attendance-matrix .main-content,
+  body.printing-attendance-matrix .attendance-page,
+  body.printing-attendance-matrix .monthly-matrix-report-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Hide navigation, filters, kpis, and interactive buttons */
+  body.printing-attendance-matrix .navbar-top,
+  body.printing-attendance-matrix .horizontal-menu-bar,
+  body.printing-attendance-matrix .page-header,
+  body.printing-attendance-matrix .attendance-subnav-tabs,
+  body.printing-attendance-matrix .matrix-filter-card,
+  body.printing-attendance-matrix .matrix-kpi-grid,
+  body.printing-attendance-matrix .footer,
+  body.printing-attendance-matrix .toast-container,
+  body.printing-attendance-matrix .no-print,
+  body.printing-attendance-matrix button,
+  body.printing-attendance-matrix .btn {
+    display: none !important;
+  }
+
+  /* Show executive print header */
+  body.printing-attendance-matrix .matrix-print-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-end !important;
+    border-bottom: 2px solid #1e3a8a !important;
+    padding-bottom: 1.5mm !important;
+    margin-bottom: 2mm !important;
+    width: 100% !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.printing-attendance-matrix .print-company-name {
+    font-size: 11pt !important;
+    font-weight: 900 !important;
+    color: #1e3a8a !important;
+    letter-spacing: -0.01em !important;
+    line-height: 1.1 !important;
+  }
+
+  body.printing-attendance-matrix .print-company-sub {
+    font-size: 6.5pt !important;
+    color: #64748b !important;
+    font-weight: 600 !important;
+    margin-top: 0.4mm !important;
+  }
+
+  body.printing-attendance-matrix .matrix-print-title-box {
+    text-align: right !important;
+  }
+
+  body.printing-attendance-matrix .print-title {
+    font-size: 10pt !important;
+    font-weight: 900 !important;
+    color: #1e3a8a !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+    line-height: 1.1 !important;
+  }
+
+  body.printing-attendance-matrix .print-meta-row {
+    display: flex !important;
+    gap: 2.5mm !important;
+    font-size: 6.5pt !important;
+    color: #334155 !important;
+    justify-content: flex-end !important;
+    margin-top: 0.6mm !important;
+  }
+
+  /* Legend Strip in Print */
+  body.printing-attendance-matrix .matrix-legend-card {
+    display: flex !important;
+    padding: 1mm 2mm !important;
+    margin-bottom: 2mm !important;
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 4px !important;
+    box-shadow: none !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 3mm !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.printing-attendance-matrix .legend-title {
+    font-size: 6pt !important;
+    font-weight: 800 !important;
+    color: #0f172a !important;
+  }
+
+  body.printing-attendance-matrix .matrix-legend-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.8mm !important;
+    font-size: 5.8pt !important;
+    color: #475569 !important;
+    white-space: nowrap !important;
+  }
+
+  body.printing-attendance-matrix .matrix-legend-badge {
+    padding: 0.2mm 0.8mm !important;
+    border-radius: 2px !important;
+    font-size: 5.5pt !important;
+    font-weight: 800 !important;
+    border-width: 0.5px !important;
+    border-style: solid !important;
+  }
+
+  body.printing-attendance-matrix .badge-present {
+    background: #ecfdf5 !important;
+    border-color: #a7f3d0 !important;
+    color: #065f46 !important;
+  }
+
+  body.printing-attendance-matrix .badge-ot {
+    background: #fff1f2 !important;
+    border-color: #fecdd3 !important;
+    color: #be123c !important;
+  }
+
+  body.printing-attendance-matrix .badge-off {
+    background: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #64748b !important;
+  }
+
+  body.printing-attendance-matrix .badge-leave {
+    background: #f5f3ff !important;
+    border-color: #ddd6fe !important;
+    color: #6d28d9 !important;
+  }
+
+  body.printing-attendance-matrix .badge-absent {
+    background: #fef2f2 !important;
+    border-color: #fecaca !important;
+    color: #b91c1c !important;
+  }
+
+  body.printing-attendance-matrix .badge-total {
+    background: #eff6ff !important;
+    border-color: #bfdbfe !important;
+    color: #1d4ed8 !important;
+  }
+
+  /* Matrix Table Card Container */
+  body.printing-attendance-matrix .matrix-table-card {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Table: Fixed layout 100% width on Landscape A4 */
+  body.printing-attendance-matrix .matrix-table {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+    font-size: 5.5pt !important;
+    border: 1px solid #94a3b8 !important;
+  }
+
+  body.printing-attendance-matrix .matrix-table thead {
+    display: table-header-group !important;
+  }
+
+  body.printing-attendance-matrix .matrix-table thead tr {
+    background: #f1f5f9 !important;
+  }
+
+  body.printing-attendance-matrix .matrix-table tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Reset all sticky positioning for crisp print */
+  body.printing-attendance-matrix .matrix-table th,
+  body.printing-attendance-matrix .matrix-table td {
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    z-index: auto !important;
+    box-shadow: none !important;
+    border: 0.5px solid #cbd5e1 !important;
+  }
+
+  /* Employee column (Left) */
+  body.printing-attendance-matrix .matrix-col-emp {
+    width: 14% !important;
+    min-width: 14% !important;
+    max-width: 14% !important;
+    text-align: left !important;
+    padding: 0.8mm 1.2mm !important;
+    overflow: hidden !important;
+    vertical-align: middle !important;
+    background: inherit !important;
+  }
+
+  body.printing-attendance-matrix .matrix-emp-name {
+    font-size: 6.2pt !important;
+    font-weight: 800 !important;
+    color: #0f172a !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.15 !important;
+  }
+
+  body.printing-attendance-matrix .matrix-emp-sub {
+    font-size: 4.8pt !important;
+    color: #475569 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.15 !important;
+  }
+
+  /* Day columns (Center) */
+  body.printing-attendance-matrix .matrix-col-day {
+    min-width: 0 !important;
+    width: auto !important;
+    padding: 0.6mm 0.1mm !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    overflow: hidden !important;
+  }
+
+  body.printing-attendance-matrix .matrix-col-day .day-num {
+    font-size: 6pt !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+  }
+
+  body.printing-attendance-matrix .matrix-col-day .day-dow {
+    font-size: 4.5pt !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    opacity: 0.85 !important;
+  }
+
+  body.printing-attendance-matrix .matrix-col-day.weekend-col {
+    background: #fef2f2 !important;
+    color: #dc2626 !important;
+  }
+
+  body.printing-attendance-matrix .matrix-cell-day {
+    padding: 0.4mm 0.1mm !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    overflow: hidden !important;
+  }
+
+  /* Punch box inside day cell */
+  body.printing-attendance-matrix .matrix-punch-box {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #f0fdf4 !important;
+    border: 0.5px solid #86efac !important;
+    border-radius: 2px !important;
+    padding: 0.2mm 0.1mm !important;
+    min-height: 0 !important;
+    gap: 0 !important;
+  }
+
+  body.printing-attendance-matrix .matrix-punch-box.weekend-ot {
+    background: #fff1f2 !important;
+    border-color: #fca5a5 !important;
+  }
+
+  body.printing-attendance-matrix .matrix-in-time {
+    font-size: 4.8pt !important;
+    font-weight: 800 !important;
+    color: #15803d !important;
+    line-height: 1.05 !important;
+    font-family: ui-monospace, SFMono-Regular, monospace !important;
+  }
+
+  body.printing-attendance-matrix .matrix-punch-box.weekend-ot .matrix-in-time {
+    color: #be123c !important;
+  }
+
+  body.printing-attendance-matrix .matrix-out-time {
+    font-size: 4.8pt !important;
+    font-weight: 700 !important;
+    color: #166534 !important;
+    line-height: 1.05 !important;
+    font-family: ui-monospace, SFMono-Regular, monospace !important;
+  }
+
+  body.printing-attendance-matrix .matrix-ot-badge {
+    font-size: 4.2pt !important;
+    font-weight: 800 !important;
+    background: #fee2e2 !important;
+    color: #be123c !important;
+    border: 0.5px solid #fca5a5 !important;
+    border-radius: 1.5px !important;
+    padding: 0 1px !important;
+    line-height: 1 !important;
+    margin-top: 0.1mm !important;
+    white-space: nowrap !important;
+  }
+
+  body.printing-attendance-matrix .matrix-status-pill {
+    display: inline-block !important;
+    font-size: 4.8pt !important;
+    font-weight: 800 !important;
+    padding: 0.3mm 0.5mm !important;
+    border-radius: 2px !important;
+    line-height: 1 !important;
+    border-width: 0.5px !important;
+    border-style: solid !important;
+  }
+
+  body.printing-attendance-matrix .pill-off {
+    background: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #64748b !important;
+  }
+
+  body.printing-attendance-matrix .pill-leave {
+    background: #f5f3ff !important;
+    border-color: #ddd6fe !important;
+    color: #6d28d9 !important;
+  }
+
+  body.printing-attendance-matrix .pill-holiday {
+    background: #fefce8 !important;
+    border-color: #fef08a !important;
+    color: #ca8a04 !important;
+  }
+
+  body.printing-attendance-matrix .pill-absent {
+    background: #fef2f2 !important;
+    border-color: #fecaca !important;
+    color: #b91c1c !important;
+  }
+
+  body.printing-attendance-matrix .matrix-status-empty {
+    font-size: 5pt !important;
+    color: #cbd5e1 !important;
+  }
+
+  /* Summary columns (Right) */
+  body.printing-attendance-matrix .matrix-col-summary-present {
+    width: 3.3% !important;
+    min-width: 3.3% !important;
+    max-width: 3.3% !important;
+    background: #f0fdf4 !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    padding: 0.5mm 0.1mm !important;
+  }
+
+  body.printing-attendance-matrix .matrix-col-summary-ot {
+    width: 3.3% !important;
+    min-width: 3.3% !important;
+    max-width: 3.3% !important;
+    background: #fff1f2 !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    padding: 0.5mm 0.1mm !important;
+  }
+
+  body.printing-attendance-matrix .matrix-col-summary-total {
+    width: 4.4% !important;
+    min-width: 4.4% !important;
+    max-width: 4.4% !important;
+    background: #eff6ff !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    padding: 0.5mm 0.1mm !important;
+  }
+
+  body.printing-attendance-matrix .matrix-col-summary-present .sub-header-label,
+  body.printing-attendance-matrix .matrix-col-summary-ot .sub-header-label,
+  body.printing-attendance-matrix .matrix-col-summary-total .sub-header-label {
+    font-size: 4.2pt !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+  }
+
+  body.printing-attendance-matrix .matrix-summary-pill {
+    font-size: 5.2pt !important;
+    font-weight: 800 !important;
+    padding: 0.3mm 0.5mm !important;
+    border-radius: 2px !important;
+    display: inline-block !important;
+    line-height: 1.1 !important;
+    border-width: 0.5px !important;
+    border-style: solid !important;
+    white-space: nowrap !important;
+  }
+
+  body.printing-attendance-matrix .matrix-summary-pill.pill-present {
+    background: #dcfce7 !important;
+    border-color: #86efac !important;
+    color: #15803d !important;
+  }
+
+  body.printing-attendance-matrix .matrix-summary-pill.pill-ot {
+    background: #fee2e2 !important;
+    border-color: #fca5a5 !important;
+    color: #be123c !important;
+  }
+
+  body.printing-attendance-matrix .matrix-summary-pill.pill-total {
+    background: #dbeafe !important;
+    border-color: #93c5fd !important;
+    color: #1e40af !important;
+  }
+
+  /* Print Signatures at bottom */
+  body.printing-attendance-matrix .matrix-print-signatures {
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-top: 3.5mm !important;
+    padding-top: 1mm !important;
+    width: 100% !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.printing-attendance-matrix .matrix-sig-box {
+    width: 55mm !important;
+    text-align: center !important;
+    border-top: 1px dashed #64748b !important;
+    padding-top: 1mm !important;
+  }
+
+  body.printing-attendance-matrix .sig-line {
+    font-size: 6.2pt !important;
+    font-weight: 700 !important;
+    color: #1e293b !important;
+  }
+
+  body.printing-attendance-matrix .sig-dept {
+    font-size: 5pt !important;
+    color: #64748b !important;
   }
 
   /* 7. User Manual SOP Document Single-Page Print Styles */
@@ -1876,6 +2357,12 @@ body.printing-manual {
 
 .manual-single-sheet {
   width: 100%;
+}
+
+/* Attendance Matrix Print-Only Elements (Hidden on screen) */
+.matrix-print-header,
+.matrix-print-signatures {
+  display: none;
 }
 
 
