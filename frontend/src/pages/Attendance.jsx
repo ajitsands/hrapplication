@@ -518,25 +518,100 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
 
   return (
     <div>
-      {/* Page Header */}
-      <div className="page-header">
-        <div className="page-title-group">
-          <h2>Attendance, Shifts &amp; Biometric Overtime Engine</h2>
-          <p>Multi-shift rostering, punch terminal synchronization, automated Bahrain Labor Law overtime, and leave correlation</p>
+      {/* Page Header - Single Row Responsive Layout */}
+      <div
+        className="page-header"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'nowrap',
+          gap: '1rem',
+          marginBottom: '1.25rem'
+        }}
+      >
+        <div className="page-title-group" style={{ minWidth: 0, flex: '1 1 auto' }}>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '0.15rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            Attendance, Shifts &amp; Biometric Overtime Engine
+          </h2>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            Multi-shift rostering, punch terminal synchronization, automated Bahrain Labor Law overtime, and leave correlation
+          </p>
         </div>
 
-        <div className="header-action-group">
-          <button className="btn btn-secondary" onClick={downloadAttendanceTemplate} title="Download standard CSV template with employee codes">
-            <Download size={16} /> Download CSV Template
+        <div
+          className="header-action-group"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.45rem',
+            flexWrap: 'nowrap',
+            flexShrink: 0
+          }}
+        >
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={downloadAttendanceTemplate}
+            title="Download standard CSV template with employee codes"
+            style={{
+              padding: '0.4rem 0.65rem',
+              fontSize: '0.78rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              fontWeight: 700,
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <Download size={14} /> Download Template
           </button>
-          <button className="btn btn-gold" onClick={openLandscapeReportModal}>
-            <Printer size={16} /> Landscape Monthly Sheet Print
+          <button
+            className="btn btn-gold btn-sm"
+            onClick={openLandscapeReportModal}
+            title="Print Landscape Monthly Attendance & OT Sheet"
+            style={{
+              padding: '0.4rem 0.65rem',
+              fontSize: '0.78rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              fontWeight: 700,
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <Printer size={14} /> Landscape Print
           </button>
-          <button className="btn btn-pink" onClick={openImportModal}>
-            <UploadCloud size={16} /> Import Biometric CSV &amp; Batches ({importBatches.length})
+          <button
+            className="btn btn-pink btn-sm"
+            onClick={openImportModal}
+            title="Import Biometric CSV & Manage Batches"
+            style={{
+              padding: '0.4rem 0.65rem',
+              fontSize: '0.78rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              fontWeight: 700,
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <UploadCloud size={14} /> Import CSV ({importBatches.length})
           </button>
-          <button className="btn btn-primary" onClick={() => setIsManualModalOpen(true)}>
-            <Plus size={16} /> Mark Manual Punch
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={() => setIsManualModalOpen(true)}
+            title="Mark Manual Attendance Punch"
+            style={{
+              padding: '0.4rem 0.65rem',
+              fontSize: '0.78rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              fontWeight: 700,
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <Plus size={14} /> Mark Manual
           </button>
         </div>
       </div>
