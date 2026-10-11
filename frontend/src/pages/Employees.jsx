@@ -753,63 +753,90 @@ export const Employees = () => {
           {/* BAHRAIN CPR & GCC CARD READER INTEGRATION BANNER */}
           <div
             style={{
-              background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
-              border: '1px solid #4338ca',
-              borderRadius: '14px',
-              padding: '0.85rem 1.15rem',
-              marginBottom: '1rem',
+              background: 'linear-gradient(135deg, #f0f7ff 0%, #f5f3ff 50%, #fdf4ff 100%)',
+              border: '1px solid #c7d2fe',
+              borderRadius: '16px',
+              padding: '1rem 1.25rem',
+              marginBottom: '1.25rem',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               gap: '1rem',
               flexWrap: 'wrap',
-              boxShadow: '0 4px 15px rgba(67, 56, 202, 0.2)'
+              boxShadow: '0 4px 20px rgba(99, 102, 241, 0.08)',
+              position: 'relative',
+              overflow: 'hidden'
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {/* Subtle light ambient glow */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '-50%',
+                right: '-20%',
+                width: '300px',
+                height: '300px',
+                background: 'radial-gradient(circle, rgba(199, 210, 254, 0.4) 0%, rgba(255,255,255,0) 70%)',
+                pointerEvents: 'none'
+              }}
+            />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', position: 'relative', zIndex: 1 }}>
               <div
                 style={{
-                  width: '38px',
-                  height: '38px',
-                  borderRadius: '10px',
-                  background: 'linear-gradient(135deg, #38bdf8, #818cf8)',
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 2px 8px rgba(56, 189, 248, 0.4)',
+                  boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)',
                   flexShrink: 0
                 }}
               >
-                <Cpu size={20} color="#ffffff" />
+                <Cpu size={22} color="#ffffff" />
               </div>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  <span style={{ color: '#ffffff', fontWeight: 800, fontSize: '0.9rem', letterSpacing: '0.2px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                  <span style={{ color: '#0f172a', fontWeight: 800, fontSize: '0.95rem', letterSpacing: '-0.2px' }}>
                     Bahrain CPR &amp; GCC Smart Card Reader
                   </span>
                   <span
                     style={{
-                      fontSize: '0.68rem',
-                      padding: '0.15rem 0.5rem',
+                      fontSize: '0.72rem',
+                      padding: '0.2rem 0.65rem',
                       borderRadius: '9999px',
-                      background: bridgeStatus?.online ? 'rgba(16, 185, 129, 0.2)' : 'rgba(234, 179, 8, 0.2)',
-                      color: bridgeStatus?.online ? '#34d399' : '#fde047',
-                      border: `1px solid ${bridgeStatus?.online ? 'rgba(16, 185, 129, 0.4)' : 'rgba(234, 179, 8, 0.4)'}`,
-                      fontWeight: 700
+                      background: bridgeStatus?.online ? '#ecfdf5' : '#fef3c7',
+                      color: bridgeStatus?.online ? '#065f46' : '#92400e',
+                      border: `1px solid ${bridgeStatus?.online ? '#a7f3d0' : '#fde68a'}`,
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.35rem'
                     }}
                   >
+                    <span
+                      style={{
+                        width: '7px',
+                        height: '7px',
+                        borderRadius: '50%',
+                        background: bridgeStatus?.online ? '#10b981' : '#f59e0b',
+                        display: 'inline-block'
+                      }}
+                    />
                     {bridgeStatus?.online
-                      ? `● Bridge Ready (Port 5050)${bridgeStatus.reader ? `: ${bridgeStatus.reader}` : ''}`
-                      : '● Bridge Port 5050'}
+                      ? `Bridge Ready (Port 5050)${bridgeStatus.reader ? `: ${bridgeStatus.reader}` : ''}`
+                      : 'Bridge Port 5050'}
                   </span>
                 </div>
-                <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginTop: '0.15rem' }}>
+                <div style={{ color: '#475569', fontSize: '0.78rem', marginTop: '0.2rem', lineHeight: 1.4 }}>
                   Reads 2025/2026 (Back Chip) &amp; Legacy CPR cards via USB, auto-populating employee demographics &amp; photograph.
                 </div>
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
               <button
                 type="button"
                 className="btn btn-primary"
@@ -820,14 +847,15 @@ export const Employees = () => {
                   border: 'none',
                   color: '#ffffff',
                   fontWeight: 800,
-                  fontSize: '0.82rem',
-                  padding: '0.55rem 1rem',
+                  fontSize: '0.85rem',
+                  padding: '0.6rem 1.15rem',
                   borderRadius: '10px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.45rem',
-                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.35)',
-                  cursor: isReadingCard ? 'not-allowed' : 'pointer'
+                  boxShadow: '0 4px 14px rgba(79, 70, 229, 0.3)',
+                  cursor: isReadingCard ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.15s ease'
                 }}
               >
                 {isReadingCard ? (
@@ -848,15 +876,20 @@ export const Employees = () => {
                 disabled={isReadingCard}
                 title="Test with Simulated CPR Card Preset"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  color: '#e2e8f0',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  fontSize: '0.78rem',
-                  padding: '0.5rem 0.75rem',
-                  borderRadius: '10px'
+                  background: '#ffffff',
+                  color: '#4338ca',
+                  border: '1px solid #c7d2fe',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  padding: '0.55rem 0.85rem',
+                  borderRadius: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
                 }}
               >
-                <Sparkles size={13} color="#facc15" /> Test Simulator
+                <Sparkles size={14} color="#eab308" /> Test Simulator
               </button>
             </div>
           </div>
