@@ -1,6 +1,7 @@
 // frontend/src/components/UserManualModal.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   BookOpen,
   Search,
@@ -28,6 +29,7 @@ import {
 export const UserManualModal = ({ isOpen, onClose }) => {
   const [activeTopicId, setActiveTopicId] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
+  const [printTarget, setPrintTarget] = useState('current');
 
   if (!isOpen) return null;
 
@@ -115,200 +117,39 @@ export const UserManualModal = ({ isOpen, onClose }) => {
   const prevTopic = currentTopicIndex > 0 ? topics[currentTopicIndex - 1] : null;
   const nextTopic = currentTopicIndex < topics.length - 1 ? topics[currentTopicIndex + 1] : null;
 
-  const handlePrint = () => {
-    window.print();
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleAfterPrint = () => {
+      document.body.classList.remove('printing-manual');
+      setPrintTarget('current');
+    };
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => window.removeEventListener('afterprint', handleAfterPrint);
+  }, []);
+
+  const handlePrint = (mode = 'current') => {
+    setPrintTarget(mode);
+    document.body.classList.add('printing-manual');
+    setTimeout(() => {
+      window.print();
+    }, 60);
   };
 
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'rgba(15, 23, 42, 0.75)',
-        backdropFilter: 'blur(6px)',
-        zIndex: 1000,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem'
-      }}
-    >
-      <div
-        style={{
-          background: '#ffffff',
-          borderRadius: 'var(--radius-xl, 20px)',
-          width: '100%',
-          maxWidth: '1280px',
-          height: '92vh',
-          display: 'flex',
-          flexDirection: 'column',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
-          overflow: 'hidden',
-          border: '1px solid var(--border-subtle, #e2e8f0)'
-        }}
-      >
-        {/* HEADER BAR */}
-        <div
-          style={{
-            padding: '1rem 1.5rem',
-            background: 'linear-gradient(135deg, #0b1528 0%, #1e293b 100%)',
-            color: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderBottom: '2px solid transparent',
-            borderImage: 'linear-gradient(90deg, #2563eb, #ec4899) 1'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-            <div
-              style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '10px',
-                background: 'linear-gradient(135deg, #2563eb, #ec4899)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(236, 72, 153, 0.35)'
-              }}
-            >
-              <BookOpen size={20} color="#ffffff" />
-            </div>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#ffffff' }}>
-                Gulf HR Enterprise — Official User Manual &amp; Standard Operating Procedures
-              </h3>
-              <p style={{ margin: 0, fontSize: '0.78rem', color: '#94a3b8' }}>
-                Complete step-by-step procedures, screenshot guides, and statutory Gulf Labor Law references
-              </p>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              onClick={handlePrint}
-              style={{ background: 'rgba(255,255,255,0.12)', color: '#ffffff', border: '1px solid rgba(255,255,255,0.2)' }}
-            >
-              <Printer size={15} /> Print Manual
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              style={{
-                background: 'rgba(255,255,255,0.1)',
-                border: 'none',
-                color: '#ffffff',
-                width: '34px',
-                height: '34px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'background 0.2s'
-              }}
-            >
-              <X size={18} />
-            </button>
-          </div>
-        </div>
-
-        {/* BODY WORKSPACE */}
-        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-          {/* LEFT SIDEBAR: TOPICS NAV */}
-          <div
-            style={{
-              width: '320px',
-              borderRight: '1px solid var(--border-subtle, #e2e8f0)',
-              background: '#f8fafc',
-              display: 'flex',
-              flexDirection: 'column',
-              flexShrink: 0
-            }}
-          >
-            {/* Search Input */}
-            <div style={{ padding: '0.85rem 1rem', borderBottom: '1px solid var(--border-subtle, #e2e8f0)' }}>
-              <div style={{ position: 'relative' }}>
-                <Search size={15} style={{ position: 'absolute', left: '10px', top: '10px', color: '#94a3b8' }} />
-                <input
-                  type="text"
-                  placeholder="Search topics or procedures..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '0.45rem 0.75rem 0.45rem 2rem',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '0.825rem',
-                    background: '#ffffff',
-                    outline: 'none'
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Topics List */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '0.5rem' }}>
-              {filteredTopics.map((topic) => {
-                const Icon = topic.icon;
-                const isActive = activeTopicId === topic.id;
-                return (
-                  <div
-                    key={topic.id}
-                    onClick={() => setActiveTopicId(topic.id)}
-                    style={{
-                      padding: '0.75rem 0.85rem',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      marginBottom: '0.35rem',
-                      background: isActive ? '#ffffff' : 'transparent',
-                      border: isActive ? '1px solid var(--primary-border, #bfdbfe)' : '1px solid transparent',
-                      boxShadow: isActive ? '0 2px 8px rgba(37, 99, 235, 0.12)' : 'none',
-                      transition: 'all 0.15s ease',
-                      borderLeft: isActive ? '4px solid var(--primary, #2563eb)' : '4px solid transparent'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
-                      <Icon size={16} color={isActive ? 'var(--primary, #2563eb)' : '#64748b'} />
-                      <span style={{ fontSize: '0.85rem', fontWeight: isActive ? 700 : 600, color: isActive ? 'var(--primary, #2563eb)' : '#1e293b' }}>
-                        {topic.title}
-                      </span>
-                    </div>
-                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b', lineHeight: 1.3, paddingLeft: '1.5rem' }}>
-                      {topic.summary}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Quick Contact Footer in Sidebar */}
-            <div style={{ padding: '0.85rem', borderTop: '1px solid #e2e8f0', background: '#f1f5f9', fontSize: '0.75rem', color: '#64748b' }}>
-              <div style={{ fontWeight: 700, color: '#0f172a' }}>Engineered by SaNDS Lab</div>
-              <div>WhatsApp Support: <strong>+9135078079</strong></div>
-            </div>
-          </div>
-
-          {/* RIGHT VIEWPORT: TOPIC CONTENT */}
-          <div
-            style={{
-              flex: 1,
-              overflowY: 'auto',
-              padding: '2rem',
-              background: '#ffffff',
-              color: '#1e293b'
-            }}
-          >
-            {/* TOPIC 1: SYSTEM OVERVIEW */}
-            {activeTopicId === 'overview' && (
-              <div>
+  const renderTopicContent = (topicId) => {
+    return (
+      <div className="manual-topic-content-body">
+        {topicId === 'overview' && (
+          <div>
                 <span className="badge badge-primary" style={{ marginBottom: '0.5rem' }}>Chapter 1 • Foundation</span>
                 <h2 style={{ fontSize: '1.65rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
                   System Overview &amp; Gulf Labor Law Architecture
@@ -350,11 +191,11 @@ export const UserManualModal = ({ isOpen, onClose }) => {
                   <li><strong>Settings &amp; Rules</strong>: Compact tabbed management of company profile, weekly holidays, overtime multipliers, and public holidays.</li>
                 </ol>
               </div>
-            )}
+            )
+        }
 
-            {/* TOPIC 2: EMPLOYEES & VAULT */}
-            {activeTopicId === 'employees' && (
-              <div>
+        {topicId === 'employees' && (
+          <div>
                 <span className="badge badge-primary" style={{ marginBottom: '0.5rem' }}>Chapter 2 • HR Management</span>
                 <h2 style={{ fontSize: '1.65rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
                   Employee Vault, Digital Dossiers &amp; Smart Expiry Alerts
@@ -399,11 +240,11 @@ export const UserManualModal = ({ isOpen, onClose }) => {
                   </div>
                 </div>
               </div>
-            )}
+            )
+        }
 
-            {/* TOPIC 3: SHIFT MASTER & ROSTERING */}
-            {activeTopicId === 'shifts' && (
-              <div>
+        {topicId === 'shifts' && (
+          <div>
                 <span className="badge badge-primary" style={{ marginBottom: '0.5rem' }}>Chapter 3 • Operations</span>
                 <h2 style={{ fontSize: '1.65rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
                   Shift Master &amp; Monthly Rotational Rostering (1–31 Grid)
@@ -440,11 +281,11 @@ export const UserManualModal = ({ isOpen, onClose }) => {
                   </div>
                 </div>
               </div>
-            )}
+            )
+        }
 
-            {/* TOPIC 4: ATTENDANCE & BIOMETRIC OVERTIME ENGINE */}
-            {activeTopicId === 'attendance' && (
-              <div>
+        {topicId === 'attendance' && (
+          <div>
                 <span className="badge badge-primary" style={{ marginBottom: '0.5rem' }}>Chapter 4 • Operations</span>
                 <h2 style={{ fontSize: '1.65rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
                   Biometric Attendance &amp; Shift-Based Overtime Engine
@@ -563,11 +404,11 @@ export const UserManualModal = ({ isOpen, onClose }) => {
                   Click <strong>"Landscape Monthly Sheet Print"</strong> in the Attendance page header. The system renders a 1–31 horizontal attendance and overtime summary sheet with Present (P), Absent (A), Weekend (W), Holiday (H), and Overtime breakdown. Click <strong>"Print Matrix"</strong> for formal paper auditing.
                 </p>
               </div>
-            )}
+            )
+        }
 
-            {/* TOPIC 5: PAYROLL & A5 PAYSLIPS */}
-            {activeTopicId === 'payroll' && (
-              <div>
+        {topicId === 'payroll' && (
+          <div>
                 <span className="badge badge-primary" style={{ marginBottom: '0.5rem' }}>Chapter 5 • Compensation</span>
                 <h2 style={{ fontSize: '1.65rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
                   Payroll Processing &amp; A5 Dual-Voucher Payslips
@@ -598,11 +439,11 @@ export const UserManualModal = ({ isOpen, onClose }) => {
                   </div>
                 </div>
               </div>
-            )}
+            )
+        }
 
-            {/* TOPIC 6: INDEMNITY & EOSB */}
-            {activeTopicId === 'indemnity' && (
-              <div>
+        {topicId === 'indemnity' && (
+          <div>
                 <span className="badge badge-primary" style={{ marginBottom: '0.5rem' }}>Chapter 6 • Compliance</span>
                 <h2 style={{ fontSize: '1.65rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
                   Indemnity &amp; End-of-Service (EOSB) Gratuity Calculation
@@ -625,11 +466,11 @@ export const UserManualModal = ({ isOpen, onClose }) => {
                   Navigate to <strong>Indemnity &amp; EOSB</strong>. Select the terminating employee, select Termination Type (Company Termination, Resignation, or Retirement), enter the last working date, and click <strong>"Calculate Settlement"</strong>. Print the formal Settlement Certificate with sign-off acknowledgment.
                 </p>
               </div>
-            )}
+            )
+        }
 
-            {/* TOPIC 7: LEAVES */}
-            {activeTopicId === 'leaves' && (
-              <div>
+        {topicId === 'leaves' && (
+          <div>
                 <span className="badge badge-primary" style={{ marginBottom: '0.5rem' }}>Chapter 7 • HR Management</span>
                 <h2 style={{ fontSize: '1.65rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
                   Leaves, Vacations &amp; Bahrain Statutory Sick Pay Policy
@@ -659,11 +500,11 @@ export const UserManualModal = ({ isOpen, onClose }) => {
                   Click <strong>"Apply for Leave"</strong> in the Leaves tab. Select employee, leave category (Annual, Sick, Casual, Maternity, Hajj), start date, and end date. Once approved by HR, dates are automatically marked on the Monthly Roster and Attendance sheets.
                 </p>
               </div>
-            )}
+            )
+        }
 
-            {/* TOPIC 8: LOANS */}
-            {activeTopicId === 'loans' && (
-              <div>
+        {topicId === 'loans' && (
+          <div>
                 <span className="badge badge-primary" style={{ marginBottom: '0.5rem' }}>Chapter 8 • Finance</span>
                 <h2 style={{ fontSize: '1.65rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
                   Employee Loans &amp; Salary Advances Ledger
@@ -679,11 +520,11 @@ export const UserManualModal = ({ isOpen, onClose }) => {
                   <li>When monthly payroll is run, the installment is automatically deducted and deducted balance is updated in real time until fully repaid.</li>
                 </ol>
               </div>
-            )}
+            )
+        }
 
-            {/* TOPIC 9: SETTINGS */}
-            {activeTopicId === 'settings' && (
-              <div>
+        {topicId === 'settings' && (
+          <div>
                 <span className="badge badge-primary" style={{ marginBottom: '0.5rem' }}>Chapter 9 • Administration</span>
                 <h2 style={{ fontSize: '1.65rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
                   System Settings, Weekly Holidays &amp; Country Rules
@@ -705,11 +546,11 @@ export const UserManualModal = ({ isOpen, onClose }) => {
                   </ol>
                 </div>
               </div>
-            )}
+            )
+        }
 
-            {/* TOPIC 10: FAQ */}
-            {activeTopicId === 'faq' && (
-              <div>
+        {topicId === 'faq' && (
+          <div>
                 <span className="badge badge-primary" style={{ marginBottom: '0.5rem' }}>Chapter 10 • Support</span>
                 <h2 style={{ fontSize: '1.65rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
                   Frequently Asked Questions &amp; Troubleshooting
@@ -744,19 +585,192 @@ export const UserManualModal = ({ isOpen, onClose }) => {
                   </div>
                 </div>
               </div>
+            )
+        }
+      </div>
+    );
+  };
+
+  return createPortal(
+    <div className="manual-modal-overlay">
+      <div className="manual-modal-window">
+        {/* HEADER BAR */}
+        <div className="manual-modal-header no-print">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #2563eb, #ec4899)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(236, 72, 153, 0.35)'
+              }}
+            >
+              <BookOpen size={20} color="#ffffff" />
+            </div>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#ffffff' }}>
+                Gulf HR Enterprise — Official User Manual &amp; Standard Operating Procedures
+              </h3>
+              <p style={{ margin: 0, fontSize: '0.78rem', color: '#94a3b8' }}>
+                Complete step-by-step procedures, screenshot guides, and statutory Gulf Labor Law references
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={() => handlePrint('current')}
+              title="Print active chapter on 1 single page"
+            >
+              <Printer size={14} /> Print This Topic (1 Page)
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => handlePrint('all')}
+              style={{ background: 'rgba(255,255,255,0.15)', color: '#ffffff', border: '1px solid rgba(255,255,255,0.25)' }}
+              title="Print all chapters (each on a single page)"
+            >
+              <Printer size={14} /> Print All (1 Page Each)
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: 'none',
+                color: '#ffffff',
+                width: '34px',
+                height: '34px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'background 0.2s'
+              }}
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+
+        {/* BODY WORKSPACE */}
+        <div className="manual-body-workspace">
+          {/* LEFT SIDEBAR: TOPICS NAV */}
+          <div className="manual-sidebar no-print">
+            {/* Search Input */}
+            <div style={{ padding: '0.85rem 1rem', borderBottom: '1px solid var(--border-subtle, #e2e8f0)' }}>
+              <div style={{ position: 'relative' }}>
+                <Search size={15} style={{ position: 'absolute', left: '10px', top: '10px', color: '#94a3b8' }} />
+                <input
+                  type="text"
+                  placeholder="Search topics or procedures..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.45rem 0.75rem 0.45rem 2rem',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.825rem',
+                    background: '#ffffff',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Topics List */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '0.5rem' }}>
+              {filteredTopics.map((topic) => {
+                const Icon = topic.icon;
+                const isActive = activeTopicId === topic.id;
+                return (
+                  <div
+                    key={topic.id}
+                    onClick={() => setActiveTopicId(topic.id)}
+                    style={{
+                      padding: '0.75rem 0.85rem',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      marginBottom: '0.35rem',
+                      background: isActive ? '#ffffff' : 'transparent',
+                      border: isActive ? '1px solid var(--primary-border, #bfdbfe)' : '1px solid transparent',
+                      boxShadow: isActive ? '0 2px 8px rgba(37, 99, 235, 0.12)' : 'none',
+                      transition: 'all 0.15s ease',
+                      borderLeft: isActive ? '4px solid var(--primary, #2563eb)' : '4px solid transparent'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
+                      <Icon size={16} color={isActive ? 'var(--primary, #2563eb)' : '#64748b'} />
+                      <span style={{ fontSize: '0.85rem', fontWeight: isActive ? 700 : 600, color: isActive ? 'var(--primary, #2563eb)' : '#1e293b' }}>
+                        {topic.title}
+                      </span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b', lineHeight: 1.3, paddingLeft: '1.5rem' }}>
+                      {topic.summary}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Quick Contact Footer in Sidebar */}
+            <div style={{ padding: '0.85rem', borderTop: '1px solid #e2e8f0', background: '#f1f5f9', fontSize: '0.75rem', color: '#64748b' }}>
+              <div style={{ fontWeight: 700, color: '#0f172a' }}>Engineered by SaNDS Lab</div>
+              <div>WhatsApp Support: <strong>+9135078079</strong></div>
+            </div>
+          </div>
+
+          {/* RIGHT VIEWPORT: TOPIC CONTENT */}
+          <div className="manual-content-viewport">
+                        {printTarget === 'all' ? (
+              <div className="manual-all-print-container">
+                {topics.map((t) => (
+                  <div key={t.id} className="manual-chapter-sheet">
+                    <div className="manual-print-doc-header">
+                      <div className="manual-doc-header-inner">
+                        <div>
+                          <strong className="manual-doc-title">GULF HR ENTERPRISE SOLUTION</strong>
+                          <div className="manual-doc-sub">Standard Operating Procedure (SOP) • System Manual</div>
+                        </div>
+                        <div className="manual-doc-meta">
+                          <div>Bahrain Labor Law No. 36 of 2012</div>
+                          <div>Chapter SOP-{t.id.toUpperCase()}</div>
+                        </div>
+                      </div>
+                    </div>
+                    {renderTopicContent(t.id)}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="manual-chapter-sheet">
+                <div className="manual-print-doc-header">
+                  <div className="manual-doc-header-inner">
+                    <div>
+                      <strong className="manual-doc-title">GULF HR ENTERPRISE SOLUTION</strong>
+                      <div className="manual-doc-sub">Standard Operating Procedure (SOP) • System Manual</div>
+                    </div>
+                    <div className="manual-doc-meta">
+                      <div>Bahrain Labor Law No. 36 of 2012</div>
+                      <div>Chapter SOP-{activeTopicId.toUpperCase()}</div>
+                    </div>
+                  </div>
+                </div>
+                {renderTopicContent(activeTopicId)}
+              </div>
             )}
 
             {/* PREVIOUS / NEXT TOPIC FOOTER */}
-            <div
-              style={{
-                marginTop: '2.5rem',
-                paddingTop: '1.25rem',
-                borderTop: '1px solid #e2e8f0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}
-            >
+            <div className="manual-footer-nav no-print">
               {prevTopic ? (
                 <button
                   type="button"
@@ -783,5 +797,7 @@ export const UserManualModal = ({ isOpen, onClose }) => {
         </div>
       </div>
     </div>
+  ,
+    document.body
   );
 };

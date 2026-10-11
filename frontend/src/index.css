@@ -1280,8 +1280,26 @@ h1, h2, h3, h4, h5, h6 {
    Print Settings - Exact Fidelity A5 Payslip & Landscape Attendance
    ========================================================================== */
 @page {
+  size: auto;
+  margin: 6mm;
+}
+
+@page a5-payslip {
   size: A5 landscape;
   margin: 5mm;
+}
+
+@page sop-manual {
+  size: portrait;
+  margin: 8mm 10mm;
+}
+
+body.printing-payslip {
+  page: a5-payslip;
+}
+
+body.printing-manual {
+  page: sop-manual;
 }
 
 @media print {
@@ -1306,6 +1324,14 @@ h1, h2, h3, h4, h5, h6 {
     overflow: visible !important;
   }
 
+  body.printing-payslip {
+    page: a5-payslip !important;
+  }
+
+  body.printing-manual {
+    page: sop-manual !important;
+  }
+
   /* 2. Global Chrome & Interactive Navigation Hiding */
   .navbar-top,
   .horizontal-menu-bar,
@@ -1325,9 +1351,11 @@ h1, h2, h3, h4, h5, h6 {
   /* 3. Modal Isolation: When a modal is open, HIDE all underlying application elements */
   body.modal-open #root,
   body:has(.modal-overlay) #root,
+  body:has(.manual-modal-overlay) #root,
   body.printing-payslip #root,
-  body.modal-open .app-container > *:not(.modal-overlay),
-  body.modal-open .main-content > *:not(.modal-overlay),
+  body.printing-manual #root,
+  body.modal-open .app-container > *:not(.modal-overlay):not(.manual-modal-overlay),
+  body.modal-open .main-content > *:not(.modal-overlay):not(.manual-modal-overlay),
   body.modal-open .payroll-page > *:not(.modal-overlay),
   body.modal-open .indemnity-page > *:not(.modal-overlay),
   body.modal-open .attendance-page > *:not(.modal-overlay),
@@ -1581,5 +1609,218 @@ h1, h2, h3, h4, h5, h6 {
     padding: 2px 1px !important;
     border: 1px solid #333 !important;
   }
+
+  /* 7. User Manual SOP Document Single-Page Print Styles */
+  .manual-modal-overlay {
+    position: static !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    display: block !important;
+  }
+
+  .manual-modal-window {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    overflow: visible !important;
+  }
+
+  .manual-modal-header,
+  .manual-sidebar,
+  .manual-footer-nav,
+  .manual-search-box {
+    display: none !important;
+  }
+
+  .manual-body-workspace {
+    display: block !important;
+    width: 100% !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  .manual-content-viewport {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    width: 100% !important;
+    background: transparent !important;
+  }
+
+  /* Single-Page SOP Chapter Sheet */
+  .manual-chapter-sheet {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 190mm !important;
+    margin: 0 auto !important;
+    padding: 3mm 5mm !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-before: avoid !important;
+    break-before: avoid !important;
+    font-size: 7.5pt !important;
+    line-height: 1.28 !important;
+  }
+
+  .manual-chapter-sheet:last-child {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  .manual-print-doc-header {
+    display: block !important;
+    border-bottom: 2px solid #1e3a8a !important;
+    padding-bottom: 1.5mm !important;
+    margin-bottom: 2.5mm !important;
+  }
+
+  .manual-doc-header-inner {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+
+  .manual-doc-title {
+    font-size: 10pt !important;
+    font-weight: 800 !important;
+    color: #1e3a8a !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  .manual-doc-sub {
+    font-size: 6.8pt !important;
+    color: #475569 !important;
+    margin-top: 0.3mm !important;
+  }
+
+  .manual-doc-meta {
+    text-align: right !important;
+    font-size: 6.8pt !important;
+    color: #64748b !important;
+    line-height: 1.2 !important;
+  }
+
+  .manual-chapter-sheet h2 {
+    font-size: 11.5pt !important;
+    margin: 0 0 1.5mm 0 !important;
+    color: #0f172a !important;
+    line-height: 1.2 !important;
+  }
+
+  .manual-chapter-sheet h3 {
+    font-size: 9pt !important;
+    margin: 1.5mm 0 1mm 0 !important;
+    color: #0f172a !important;
+  }
+
+  .manual-chapter-sheet h4 {
+    font-size: 8pt !important;
+    margin: 0.8mm 0 0.8mm 0 !important;
+  }
+
+  .manual-chapter-sheet p {
+    font-size: 7.5pt !important;
+    margin-bottom: 1.5mm !important;
+    line-height: 1.28 !important;
+    color: #334155 !important;
+  }
+
+  .manual-chapter-sheet ol,
+  .manual-chapter-sheet ul {
+    margin-top: 0.8mm !important;
+    margin-bottom: 1.5mm !important;
+    padding-left: 4.5mm !important;
+    font-size: 7.5pt !important;
+    line-height: 1.3 !important;
+  }
+
+  .manual-chapter-sheet li {
+    margin-bottom: 0.6mm !important;
+  }
+
+  .manual-chapter-sheet .badge {
+    font-size: 6.5pt !important;
+    padding: 0.6mm 2mm !important;
+    border-radius: 4px !important;
+    margin-bottom: 1mm !important;
+    display: inline-block !important;
+    background: #2563eb !important;
+    color: #ffffff !important;
+  }
+
+  .manual-chapter-sheet table {
+    font-size: 6.8pt !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  .manual-chapter-sheet th,
+  .manual-chapter-sheet td {
+    padding: 0.8mm 1.5mm !important;
+    border: 1px solid #cbd5e1 !important;
+  }
 }
+
+/* User Manual Modal On-Screen Base Styles */
+.manual-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.manual-modal-window {
+  background: #ffffff;
+  border-radius: var(--radius-xl, 20px);
+  width: 100%;
+  max-width: 1280px;
+  height: 92vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  border: 1px solid var(--border-subtle, #e2e8f0);
+}
+
+.manual-modal-header {
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #0b1528 0%, #1e293b 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(90deg, #2563eb, #ec4899) 1;
+}
+
+.manual-print-doc-header {
+  display: none;
+}
+
 
