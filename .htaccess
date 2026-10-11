@@ -6,19 +6,28 @@
     RewriteEngine On
     RewriteBase /
 
-    # 1. Route API requests to PHP Backend
-    RewriteRule ^api/(.*)$ backend/public/index.php [QSA,L]
-    RewriteRule ^api$ backend/public/index.php [QSA,L]
+    # Prevent loop if already rewritten
+    RewriteCond %{ENV:REDIRECT_STATUS} 200
+    RewriteRule ^ - [L]
 
-    # 2. Allow direct access to uploaded files
+    # 1. API Calls: Route to /api/index.php and stop rewrite
+    RewriteRule ^api/(.*)$ api/index.php [QSA,L]
+    RewriteRule ^api$ api/index.php [QSA,L]
+
+    # 2. Backend direct access: Stop rewrite
+    RewriteRule ^backend/ - [L]
+
+    # 3. Allow direct access to uploaded documents
     RewriteRule ^uploads/(.*)$ backend/public/uploads/$1 [L]
 
-    # 3. Serve existing static files & directories directly (JS, CSS, images, etc.)
+    # 4. Serve existing physical files & directories directly (JS, CSS, images, etc.)
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # 4. Route all frontend URLs to index.html (React Single Page App)
+    # 5. Route all frontend pages to index.html (EXCLUDE /api and /backend)
+    RewriteCond %{REQUEST_URI} !^/api
+    RewriteCond %{REQUEST_URI} !^/backend
     RewriteRule ^ index.html [L]
 </IfModule>
 
@@ -31,7 +40,7 @@ Options -Indexes
     Deny from all
 </FilesMatch>
 
-# Enable GZIP Compression for ultra-fast loading
+# Enable GZIP Compression
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css application/xml application/xhtml+xml application/rss+xml application/javascript application/x-javascript application/json image/svg+xml
 </IfModule>
