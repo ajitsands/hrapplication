@@ -23,6 +23,7 @@ pnpm-debug.log*
 .env.local
 .env.*.local
 *.local
+backend/config/db_config.php
 
 # Editor & OS files
 .vscode/
