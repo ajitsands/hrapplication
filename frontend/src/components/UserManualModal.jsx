@@ -31,8 +31,6 @@ export const UserManualModal = ({ isOpen, onClose }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [printTarget, setPrintTarget] = useState('current');
 
-  if (!isOpen) return null;
-
   const topics = [
     {
       id: 'overview',
@@ -591,9 +589,11 @@ export const UserManualModal = ({ isOpen, onClose }) => {
     );
   };
 
+  if (!isOpen) return null;
+
   return createPortal(
-    <div className="manual-modal-overlay">
-      <div className="manual-modal-window">
+    <div className="manual-modal-overlay" onClick={onClose}>
+      <div className="manual-modal-window" onClick={(e) => e.stopPropagation()}>
         {/* HEADER BAR */}
         <div className="manual-modal-header no-print">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
