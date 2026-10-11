@@ -475,6 +475,89 @@ export const UserManualModal = ({ isOpen, onClose }) => {
                   </div>
                 </div>
 
+                <h3 style={{ fontSize: '1.15rem', color: '#0f172a', marginBottom: '0.75rem' }}>📋 Biometric CSV &amp; Excel Import Format Guidelines</h3>
+                <p style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '0.75rem' }}>
+                  When preparing biometric export logs from physical punch clocks (ZKTeco, Suprema, Anviz, Hikvision, Facial Terminals), structure the data in the following 6-column CSV or Excel format:
+                </p>
+
+                <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden', marginBottom: '1.5rem' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', textAlign: 'left' }}>
+                    <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                      <tr>
+                        <th style={{ padding: '0.6rem 0.75rem', fontWeight: 700, color: '#1e293b' }}>Column Name</th>
+                        <th style={{ padding: '0.6rem 0.75rem', fontWeight: 700, color: '#1e293b' }}>Format &amp; Rules</th>
+                        <th style={{ padding: '0.6rem 0.75rem', fontWeight: 700, color: '#1e293b' }}>Example</th>
+                        <th style={{ padding: '0.6rem 0.75rem', fontWeight: 700, color: '#1e293b' }}>Notes &amp; Validation</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '0.6rem 0.75rem', fontWeight: 700, color: '#2563eb' }}>Employee Code</td>
+                        <td style={{ padding: '0.6rem 0.75rem' }}>Employee code (or CPR / employee ID number)</td>
+                        <td style={{ padding: '0.6rem 0.75rem' }}><code>EMP-001</code> / <code>951110482</code></td>
+                        <td style={{ padding: '0.6rem 0.75rem', color: '#64748b' }}>Matches against company employees registry</td>
+                      </tr>
+                      <tr style={{ borderBottom: '1px solid #f1f5f9', background: '#fcfdfe' }}>
+                        <td style={{ padding: '0.6rem 0.75rem', fontWeight: 700, color: '#2563eb' }}>Date</td>
+                        <td style={{ padding: '0.6rem 0.75rem' }}>Punch date (<code>YYYY-MM-DD</code>)</td>
+                        <td style={{ padding: '0.6rem 0.75rem' }}><code>2026-10-11</code></td>
+                        <td style={{ padding: '0.6rem 0.75rem', color: '#64748b' }}>Standard ISO date format</td>
+                      </tr>
+                      <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '0.6rem 0.75rem', fontWeight: 700, color: '#2563eb' }}>Check In</td>
+                        <td style={{ padding: '0.6rem 0.75rem' }}>In-time (<code>HH:MM</code> or <code>HH:MM:SS</code>)</td>
+                        <td style={{ padding: '0.6rem 0.75rem' }}><code>08:00</code></td>
+                        <td style={{ padding: '0.6rem 0.75rem', color: '#64748b' }}>24-hour time notation</td>
+                      </tr>
+                      <tr style={{ borderBottom: '1px solid #f1f5f9', background: '#fcfdfe' }}>
+                        <td style={{ padding: '0.6rem 0.75rem', fontWeight: 700, color: '#2563eb' }}>Check Out</td>
+                        <td style={{ padding: '0.6rem 0.75rem' }}>Out-time (<code>HH:MM</code> or <code>HH:MM:SS</code>)</td>
+                        <td style={{ padding: '0.6rem 0.75rem' }}><code>16:30</code></td>
+                        <td style={{ padding: '0.6rem 0.75rem', color: '#64748b' }}>Matched with assigned shift schedule</td>
+                      </tr>
+                      <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '0.6rem 0.75rem', fontWeight: 700, color: '#2563eb' }}>Status</td>
+                        <td style={{ padding: '0.6rem 0.75rem' }}><code>Present</code>, <code>Absent</code>, <code>Half Day</code>, or <code>Leave</code></td>
+                        <td style={{ padding: '0.6rem 0.75rem' }}><code>Present</code></td>
+                        <td style={{ padding: '0.6rem 0.75rem', color: '#64748b' }}>Defaults to Present if In/Out times are provided</td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: '0.6rem 0.75rem', fontWeight: 700, color: '#2563eb' }}>Manual OT Hours</td>
+                        <td style={{ padding: '0.6rem 0.75rem' }}>Optional overtime override in hours (e.g. <code>1.5</code> or <code>0</code>)</td>
+                        <td style={{ padding: '0.6rem 0.75rem' }}><code>1.5</code></td>
+                        <td style={{ padding: '0.6rem 0.75rem', color: '#64748b' }}>If left 0 or blank, Bahrain statutory overtime is calculated automatically against the assigned shift schedule.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <h3 style={{ fontSize: '1.15rem', color: '#0f172a', marginBottom: '0.75rem' }}>🔄 Biometric Batch Tracking &amp; Clean Rollback Mechanism</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                  <div style={{ padding: '0.85rem', background: '#f8fafc', borderRadius: '8px', borderLeft: '4px solid #6366f1' }}>
+                    <strong>1. Timestamped Import Batches</strong>
+                    <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: '#475569' }}>
+                      Every biometric sync assigns a unique Batch Name and exact Date &amp; Time stamp (e.g. <code>BATCH-20261011-194132-214</code>).
+                    </p>
+                  </div>
+                  <div style={{ padding: '0.85rem', background: '#f8fafc', borderRadius: '8px', borderLeft: '4px solid #ef4444' }}>
+                    <strong>2. Zero-Residual Batch Rollback &amp; Recalculation</strong>
+                    <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: '#475569' }}>
+                      If an imported CSV had wrong timings or incorrect staff codes, open <strong>"Batch History &amp; Rollback"</strong> and click <strong>"Delete Batch"</strong>. The in-app confirmation popup allows you to completely remove all associated punches without leaving orphan records, so you can upload a corrected CSV file cleanly and recalculate attendance.
+                    </p>
+                  </div>
+                  <div style={{ padding: '0.85rem', background: '#f8fafc', borderRadius: '8px', borderLeft: '4px solid #10b981' }}>
+                    <strong>3. 1-Click CSV Template Download</strong>
+                    <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: '#475569' }}>
+                      Click <strong>"Download CSV Template"</strong> in the Attendance page header or beside <strong>Bulk Shift Scheduler</strong> in the monthly roster to get a pre-populated CSV template containing all current company employee codes ready for data entry.
+                    </p>
+                  </div>
+                </div>
+
+                <h3 style={{ fontSize: '1.15rem', color: '#0f172a', marginBottom: '0.75rem' }}>📊 Monthly Attendance Report (1–31 Matrix &amp; 30-Day Work Hours)</h3>
+                <p style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '1.5rem', lineHeight: 1.6 }}>
+                  Located directly after Monthly Shift Rostering, the <strong>Monthly Attendance Report</strong> presents a full 31-day visual attendance grid showing daily In-Time, Out-Time, Overtime tags, and sticky right-hand summary columns: <strong>Present Days</strong>, <strong>Total Overtime Hours</strong>, and <strong>Total Hours Worked (30 Days)</strong>.
+                </p>
+
                 <h3 style={{ fontSize: '1.15rem', color: '#0f172a', marginBottom: '0.75rem' }}>Procedure: Printing Landscape Monthly Time-Card Sheet</h3>
                 <p style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '1rem' }}>
                   Click <strong>"Landscape Monthly Sheet Print"</strong> in the Attendance page header. The system renders a 1–31 horizontal attendance and overtime summary sheet with Present (P), Absent (A), Weekend (W), Holiday (H), and Overtime breakdown. Click <strong>"Print Matrix"</strong> for formal paper auditing.

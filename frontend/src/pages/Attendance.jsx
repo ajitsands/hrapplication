@@ -1232,7 +1232,7 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
             </div>
 
             {/* CSV Template Download Action Banner */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: 'var(--radius-sm)', border: '1px solid #e2e8f0', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: 'var(--radius-sm)', border: '1px solid #e2e8f0', marginBottom: '1rem' }}>
               <div>
                 <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--text-primary)' }}>Need the CSV Import Template?</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Pre-formatted columns (Emp Code, Date, In, Out, Status, OT) populated with active staff codes.</div>
@@ -1245,6 +1245,49 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
               >
                 <Download size={14} /> Download CSV Template
               </button>
+            </div>
+
+            {/* Standard Excel / CSV Format Specification */}
+            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 'var(--radius-md)', padding: '0.85rem 1rem', marginBottom: '1.25rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 800, fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+                  <FileSpreadsheet size={16} color="var(--primary)" />
+                  Biometric CSV / Excel Data Format Guidelines
+                </div>
+                <span className="badge badge-info" style={{ fontSize: '0.7rem' }}>6 Column Specification</span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.5rem', fontSize: '0.78rem' }}>
+                <div style={{ background: '#f8fafc', padding: '0.5rem 0.65rem', borderRadius: 'var(--radius-sm)', border: '1px solid #edf2f7' }}>
+                  <strong style={{ color: 'var(--primary)' }}>Employee Code:</strong>
+                  <div style={{ color: 'var(--text-secondary)', marginTop: '0.15rem' }}>Employee code (or CPR / employee ID number)</div>
+                </div>
+
+                <div style={{ background: '#f8fafc', padding: '0.5rem 0.65rem', borderRadius: 'var(--radius-sm)', border: '1px solid #edf2f7' }}>
+                  <strong style={{ color: 'var(--primary)' }}>Date:</strong>
+                  <div style={{ color: 'var(--text-secondary)', marginTop: '0.15rem' }}>Punch date (<code>YYYY-MM-DD</code>)</div>
+                </div>
+
+                <div style={{ background: '#f8fafc', padding: '0.5rem 0.65rem', borderRadius: 'var(--radius-sm)', border: '1px solid #edf2f7' }}>
+                  <strong style={{ color: 'var(--primary)' }}>Check In:</strong>
+                  <div style={{ color: 'var(--text-secondary)', marginTop: '0.15rem' }}>In-time (<code>HH:MM</code> or <code>HH:MM:SS</code>)</div>
+                </div>
+
+                <div style={{ background: '#f8fafc', padding: '0.5rem 0.65rem', borderRadius: 'var(--radius-sm)', border: '1px solid #edf2f7' }}>
+                  <strong style={{ color: 'var(--primary)' }}>Check Out:</strong>
+                  <div style={{ color: 'var(--text-secondary)', marginTop: '0.15rem' }}>Out-time (<code>HH:MM</code> or <code>HH:MM:SS</code>)</div>
+                </div>
+
+                <div style={{ background: '#f8fafc', padding: '0.5rem 0.65rem', borderRadius: 'var(--radius-sm)', border: '1px solid #edf2f7' }}>
+                  <strong style={{ color: 'var(--primary)' }}>Status:</strong>
+                  <div style={{ color: 'var(--text-secondary)', marginTop: '0.15rem' }}><code>Present</code>, <code>Absent</code>, <code>Half Day</code>, or <code>Leave</code></div>
+                </div>
+
+                <div style={{ background: '#f8fafc', padding: '0.5rem 0.65rem', borderRadius: 'var(--radius-sm)', border: '1px solid #edf2f7' }}>
+                  <strong style={{ color: 'var(--primary)' }}>Manual OT Hours:</strong>
+                  <div style={{ color: 'var(--text-secondary)', marginTop: '0.15rem' }}>Optional overtime override in hours (e.g. <code>1.5</code> or <code>0</code>). If left 0 or blank, Bahrain statutory overtime is calculated automatically against the assigned shift schedule.</div>
+                </div>
+              </div>
             </div>
 
             {/* Batch Name & Timestamp Inputs */}
