@@ -148,8 +148,20 @@ export const Payroll = () => {
     }
   };
 
+  useEffect(() => {
+    const handleAfterPrint = () => {
+      document.body.classList.remove('printing-payslip');
+    };
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => window.removeEventListener('afterprint', handleAfterPrint);
+  }, []);
+
   const handlePrint = () => {
+    document.body.classList.add('printing-payslip');
     window.print();
+    setTimeout(() => {
+      document.body.classList.remove('printing-payslip');
+    }, 1500);
   };
 
   const columns = [

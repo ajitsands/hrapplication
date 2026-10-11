@@ -1276,51 +1276,300 @@ h1, h2, h3, h4, h5, h6 {
   padding-top: 0.35rem;
 }
 
-/* Print Settings for A5 & Landscape Format */
+/* ==========================================================================
+   Print Settings - Exact Fidelity A5 Payslip & Landscape Attendance
+   ========================================================================== */
+@page {
+  size: A5 landscape;
+  margin: 5mm;
+}
+
 @media print {
-  @page {
-    size: landscape;
-    margin: 6mm;
+  /* 1. Universal Color and Exact Styling Fidelity */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    box-sizing: border-box !important;
   }
 
+  html,
   body {
     background: #ffffff !important;
-    color: #000000 !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
   }
 
+  /* 2. Global Chrome & Interactive Navigation Hiding */
   .navbar-top,
   .horizontal-menu-bar,
   .page-header,
+  .footer,
+  .toast-container,
   .no-print,
-  .header-action-group,
   .modal-header,
   .modal-footer,
   .modal-close-btn,
-  .toast-container {
+  .header-action-group,
+  button,
+  .btn {
     display: none !important;
   }
 
+  /* 3. Modal Isolation: When a modal is open, HIDE all underlying application elements */
+  body.modal-open #root,
+  body:has(.modal-overlay) #root,
+  body.printing-payslip #root,
+  body.modal-open .app-container > *:not(.modal-overlay),
+  body.modal-open .main-content > *:not(.modal-overlay),
+  body.modal-open .payroll-page > *:not(.modal-overlay),
+  body.modal-open .indemnity-page > *:not(.modal-overlay),
+  body.modal-open .attendance-page > *:not(.modal-overlay),
+  body.modal-open .employees-page > *:not(.modal-overlay),
+  body.modal-open .dashboard-page > *:not(.modal-overlay),
+  body.modal-open .card:not(:has(.payslip-a5-container)),
+  body.modal-open .table-wrapper {
+    display: none !important;
+  }
+
+  /* 4. Modal Overlay & Container Reset for Crisp Page Placement */
   .modal-overlay {
-    position: static;
-    background: transparent;
-    padding: 0;
+    position: static !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    display: block !important;
   }
 
   .modal-window {
     max-width: 100% !important;
+    width: 100% !important;
     border: none !important;
     box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    animation: none !important;
+    overflow: visible !important;
+    max-height: none !important;
   }
 
   .modal-body {
     padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    max-height: none !important;
   }
 
+  /* 5. A5 Payslip Exact Styling & 1-Page Fix */
+  .payslip-a5-container {
+    width: 100% !important;
+    max-width: 198mm !important;
+    margin: 0 auto !important;
+    padding: 3.2mm 4.5mm !important;
+    background: #ffffff !important;
+    border: 2px solid #1e3a8a !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    color: #0f172a !important;
+    font-size: 7.2pt !important;
+    line-height: 1.22 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-before: avoid !important;
+    break-before: avoid !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  .payslip-header-grid {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    border-bottom: 2px solid #1e3a8a !important;
+    padding-bottom: 1.5mm !important;
+    margin-bottom: 1.8mm !important;
+  }
+
+  .payslip-company-info h2 {
+    font-size: 10.5pt !important;
+    font-weight: 800 !important;
+    color: #1e40af !important;
+    margin: 0 0 0.5mm 0 !important;
+  }
+
+  .payslip-company-info p {
+    font-size: 6.5pt !important;
+    color: #475569 !important;
+    margin: 0.2mm 0 !important;
+    line-height: 1.18 !important;
+  }
+
+  .payslip-title-badge {
+    text-align: right !important;
+  }
+
+  .payslip-title-badge h3 {
+    font-size: 11pt !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.04em !important;
+    color: #1e3a8a !important;
+    margin: 0 0 0.5mm 0 !important;
+  }
+
+  .payslip-period-pill {
+    display: inline-block !important;
+    background: #4f46e5 !important;
+    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #ec4899 100%) !important;
+    color: #ffffff !important;
+    padding: 0.8mm 2.8mm !important;
+    border-radius: 4px !important;
+    font-weight: 700 !important;
+    font-size: 6.5pt !important;
+  }
+
+  .payslip-emp-meta-table {
+    width: 100% !important;
+    margin-bottom: 1.8mm !important;
+    border-collapse: collapse !important;
+  }
+
+  .payslip-emp-meta-table td {
+    padding: 1mm 2mm !important;
+    border: 1px solid #cbd5e1 !important;
+    font-size: 7pt !important;
+    line-height: 1.18 !important;
+  }
+
+  .payslip-emp-meta-table .meta-label {
+    background: #f8fafc !important;
+    font-weight: 700 !important;
+    color: #334155 !important;
+    width: 22% !important;
+  }
+
+  .payslip-breakdown-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 2.2mm !important;
+    margin-bottom: 1.8mm !important;
+  }
+
+  .breakdown-box {
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 4px !important;
+    overflow: hidden !important;
+  }
+
+  .breakdown-box-title {
+    background: #f1f5f9 !important;
+    padding: 1mm 2mm !important;
+    font-weight: 700 !important;
+    font-size: 7.2pt !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+    color: #1e293b !important;
+  }
+
+  .breakdown-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  .breakdown-table td {
+    padding: 0.8mm 2mm !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    font-size: 6.9pt !important;
+    line-height: 1.18 !important;
+  }
+
+  .breakdown-table tr:last-child td {
+    border-bottom: none !important;
+  }
+
+  .breakdown-total-row {
+    background: #f8fafc !important;
+    font-weight: 800 !important;
+    border-top: 1px solid #cbd5e1 !important;
+  }
+
+  .breakdown-total-row td {
+    padding: 1mm 2mm !important;
+  }
+
+  .breakdown-total-row td strong[style*="var(--primary)"],
+  .breakdown-total-row td strong {
+    color: #1e40af !important;
+  }
+
+  td[style*="var(--danger)"] {
+    color: #dc2626 !important;
+  }
+
+  td[style*="var(--accent-gold)"] {
+    color: #d97706 !important;
+  }
+
+  .payslip-net-box {
+    background: #eff6ff !important;
+    background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%) !important;
+    border: 2px solid #2563eb !important;
+    border-radius: 5px !important;
+    padding: 1.6mm 3mm !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-bottom: 1.6mm !important;
+  }
+
+  .net-label {
+    font-size: 7.8pt !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    color: #1e3a8a !important;
+  }
+
+  .net-amount-highlight {
+    font-size: 11.5pt !important;
+    font-weight: 900 !important;
+    color: #2563eb !important;
+  }
+
+  .payslip-signatures {
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-top: 2.2mm !important;
+    padding-top: 1mm !important;
+  }
+
+  .sig-block {
+    text-align: center !important;
+    width: 45mm !important;
+    border-top: 1px dashed #64748b !important;
+    padding-top: 0.8mm !important;
+    font-size: 6.6pt !important;
+    font-weight: 600 !important;
+    color: #475569 !important;
+  }
+
+  /* 6. Landscape Attendance Matrix Sheet Support */
   .attendance-landscape-sheet {
     box-shadow: none !important;
     border: 1.5px solid #000 !important;
     padding: 4mm 6mm !important;
     page-break-after: always !important;
+    break-after: page !important;
   }
 
   .landscape-matrix-table {
@@ -1332,11 +1581,5 @@ h1, h2, h3, h4, h5, h6 {
     padding: 2px 1px !important;
     border: 1px solid #333 !important;
   }
-
-  .payslip-a5-container {
-    max-width: 100% !important;
-    border: 1.5px solid #000 !important;
-    padding: 6mm !important;
-    page-break-inside: avoid;
-  }
 }
+

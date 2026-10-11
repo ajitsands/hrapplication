@@ -56,6 +56,22 @@ export const Indemnity = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const handleAfterPrint = () => {
+      document.body.classList.remove('printing-payslip');
+    };
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => window.removeEventListener('afterprint', handleAfterPrint);
+  }, []);
+
+  const handlePrintCertificate = () => {
+    document.body.classList.add('printing-payslip');
+    window.print();
+    setTimeout(() => {
+      document.body.classList.remove('printing-payslip');
+    }, 1500);
+  };
+
   const handleCalculate = async (save = false) => {
     if (!selectedEmpId) {
       showToast('Error', 'Please select an employee to calculate Indemnity / EOSB', 'error');
@@ -385,7 +401,7 @@ export const Indemnity = () => {
         footer={
           <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', width: '100%' }}>
             <button className="btn btn-secondary" onClick={() => setIsCertificateModalOpen(false)}>Close</button>
-            <button className="btn btn-primary" onClick={() => window.print()}>
+            <button className="btn btn-primary" onClick={handlePrintCertificate}>
               <Printer size={15} /> Print Certificate
             </button>
           </div>

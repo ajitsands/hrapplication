@@ -1,6 +1,7 @@
 // frontend/src/components/Modal.jsx
 
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 export const Modal = ({ isOpen, onClose, title, children, footer, size = 'default' }) => {
@@ -14,9 +15,20 @@ export const Modal = ({ isOpen, onClose, title, children, footer, size = 'defaul
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div 
         className={`modal-window ${size === 'lg' ? 'lg' : size === 'sm' ? 'sm' : ''}`}
@@ -37,6 +49,8 @@ export const Modal = ({ isOpen, onClose, title, children, footer, size = 'defaul
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
+
