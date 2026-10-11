@@ -648,7 +648,7 @@ export const Employees = () => {
 
         <div className="header-action-group">
           <a
-            href="/downloads/SaNDSLabCardBridge.zip"
+            href="/download_bridge.php"
             download="SaNDSLabCardBridge.zip"
             className="btn btn-secondary"
             title="Download Bahrain CPR Card Bridge Driver & DLLs package (SaNDSLabCardBridge.zip)"
@@ -856,7 +856,7 @@ export const Employees = () => {
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.35rem', fontSize: '0.75rem', flexWrap: 'wrap' }}>
                   <a
-                    href="/downloads/SaNDSLabCardBridge.zip"
+                    href="/download_bridge.php"
                     download="SaNDSLabCardBridge.zip"
                     style={{ color: '#4338ca', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                     title="Download SaNDSLabCardBridge DLLs & Bridge package"

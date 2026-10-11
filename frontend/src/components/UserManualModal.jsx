@@ -273,7 +273,7 @@ export const UserManualModal = ({ isOpen, onClose }) => {
                       <BookOpen size={14} /> Open Full Card Setup &amp; Installation Guide ↗
                     </a>
                     <a
-                      href="/downloads/SaNDSLabCardBridge.zip"
+                      href="/download_bridge.php"
                       download="SaNDSLabCardBridge.zip"
                       className="btn btn-secondary btn-sm"
                       style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}

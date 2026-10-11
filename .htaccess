@@ -19,7 +19,11 @@
     RewriteRule ^api/(.*)$ api/index.php [QSA,L]
     RewriteRule ^api$ api/index.php [QSA,L]
 
-    # 2. Backend direct access: Stop rewrite
+    # 2. Card Bridge Driver Direct Download
+    RewriteRule ^downloads/SaNDSLabCardBridge\.zip$ download_bridge.php [L]
+    RewriteRule ^download_bridge\.php$ download_bridge.php [L]
+
+    # 3. Backend direct access: Stop rewrite
     RewriteRule ^backend/ - [L]
 
     # 3. Allow direct access to uploaded documents

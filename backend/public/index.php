@@ -41,6 +41,7 @@ $router = new Router();
 $router->post('/api/auth/login', ['App\Controllers\AuthController', 'login']);
 $router->get('/api/settings/public', ['App\Controllers\SettingsController', 'get']);
 $router->get('/api/attendance/template', ['App\Controllers\AttendanceController', 'template']);
+$router->get('/api/download/card-bridge', ['App\Controllers\EmployeeController', 'downloadCardBridge']);
 
 // ==========================================
 // 2. AUTHENTICATED USER ROUTES

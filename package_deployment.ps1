@@ -32,6 +32,7 @@ Copy-Item -Path "$workspaceRoot\api.php" -Destination "$stagingDir\" -Force
 Copy-Item -Path "$workspaceRoot\favicon.svg" -Destination "$stagingDir\" -Force
 Copy-Item -Path "$workspaceRoot\icons.svg" -Destination "$stagingDir\" -Force
 Copy-Item -Path "$workspaceRoot\BAHRAIN_SMART_CARD_SETUP_GUIDE.html" -Destination "$stagingDir\" -Force
+Copy-Item -Path "$workspaceRoot\download_bridge.php" -Destination "$stagingDir\" -Force
 
 Copy-Item -Path "$workspaceRoot\assets" -Destination "$stagingDir\" -Recurse -Force
 Copy-Item -Path "$workspaceRoot\api" -Destination "$stagingDir\" -Recurse -Force
