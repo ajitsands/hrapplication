@@ -12,6 +12,20 @@ const getApiBase = () => {
 
 const API_BASE = getApiBase();
 
+export const getDownloadBridgeUrl = () => {
+  if (typeof window !== 'undefined' && window.location.hostname.includes('trackmyteam.us')) {
+    return 'https://trackmyteam.us/hr.trackmyteam.us/api.php/download/card-bridge';
+  }
+  return '/api/download/card-bridge';
+};
+
+export const getSetupGuideUrl = () => {
+  if (typeof window !== 'undefined' && window.location.hostname.includes('trackmyteam.us')) {
+    return 'https://trackmyteam.us/hr.trackmyteam.us/BAHRAIN_SMART_CARD_SETUP_GUIDE.html';
+  }
+  return '/BAHRAIN_SMART_CARD_SETUP_GUIDE.html';
+};
+
 export const api = {
   getToken: () => localStorage.getItem('gulf_hr_token') || '',
   

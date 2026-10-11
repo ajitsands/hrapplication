@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { api } from '../services/api';
+import { api, getDownloadBridgeUrl, getSetupGuideUrl } from '../services/api';
 import { DataTable } from '../components/DataTable';
 import { Modal } from '../components/Modal';
 import {
@@ -648,7 +648,7 @@ export const Employees = () => {
 
         <div className="header-action-group">
           <a
-            href="/download_bridge.php"
+            href={getDownloadBridgeUrl()}
             download="SaNDSLabCardBridge.zip"
             className="btn btn-secondary"
             title="Download Bahrain CPR Card Bridge Driver & DLLs package (SaNDSLabCardBridge.zip)"
@@ -657,7 +657,7 @@ export const Employees = () => {
             <Download size={15} color="#4f46e5" /> Download Driver (ZIP)
           </a>
           <a
-            href="/BAHRAIN_SMART_CARD_SETUP_GUIDE.html"
+            href={getSetupGuideUrl()}
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-secondary"
@@ -856,7 +856,7 @@ export const Employees = () => {
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.35rem', fontSize: '0.75rem', flexWrap: 'wrap' }}>
                   <a
-                    href="/download_bridge.php"
+                    href={getDownloadBridgeUrl()}
                     download="SaNDSLabCardBridge.zip"
                     style={{ color: '#4338ca', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                     title="Download SaNDSLabCardBridge DLLs & Bridge package"
@@ -865,7 +865,7 @@ export const Employees = () => {
                   </a>
                   <span style={{ color: '#cbd5e1' }}>•</span>
                   <a
-                    href="/BAHRAIN_SMART_CARD_SETUP_GUIDE.html"
+                    href={getSetupGuideUrl()}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ color: '#059669', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}

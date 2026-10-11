@@ -25,6 +25,7 @@ import {
   Download,
   X
 } from 'lucide-react';
+import { getDownloadBridgeUrl, getSetupGuideUrl } from '../services/api';
 
 export const UserManualModal = ({ isOpen, onClose }) => {
   const [activeTopicId, setActiveTopicId] = useState('overview');
@@ -264,7 +265,7 @@ export const UserManualModal = ({ isOpen, onClose }) => {
 
                   <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                     <a
-                      href="/BAHRAIN_SMART_CARD_SETUP_GUIDE.html"
+                      href={getSetupGuideUrl()}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn btn-primary btn-sm"
@@ -273,7 +274,7 @@ export const UserManualModal = ({ isOpen, onClose }) => {
                       <BookOpen size={14} /> Open Full Card Setup &amp; Installation Guide ↗
                     </a>
                     <a
-                      href="/download_bridge.php"
+                      href={getDownloadBridgeUrl()}
                       download="SaNDSLabCardBridge.zip"
                       className="btn btn-secondary btn-sm"
                       style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
