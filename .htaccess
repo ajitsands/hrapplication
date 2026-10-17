@@ -43,6 +43,25 @@
 # Disable Directory Browsing
 Options -Indexes
 
+# Anti-Caching Directives for Nginx Reverse Proxies, FastCGI & Browsers
+<IfModule mod_headers.c>
+    # 1. Disable caching on all PHP scripts and API endpoints
+    <FilesMatch "\.(php)$">
+        Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0"
+        Header set Pragma "no-cache"
+        Header set Expires "Mon, 26 Jul 1997 05:00:00 GMT"
+        Header set X-Accel-Expires "0"
+        Header set X-Accel-Buffering "no"
+    </FilesMatch>
+
+    # 2. Never cache index.html so code updates and bundle hashes reflect instantly
+    <FilesMatch "(index\.html)$">
+        Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+</IfModule>
+
 # Security: Block direct access to sensitive backend files
 <FilesMatch "(^\.env|\.sql|Config\.php|seeder\.php|\.git)">
     Order allow,deny

@@ -11,3 +11,11 @@
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)$ index.php [QSA,L]
 </IfModule>
+
+<IfModule mod_headers.c>
+    Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0"
+    Header set Pragma "no-cache"
+    Header set Expires "Mon, 26 Jul 1997 05:00:00 GMT"
+    Header set X-Accel-Expires "0"
+    Header set X-Accel-Buffering "no"
+</IfModule>

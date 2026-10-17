@@ -47,10 +47,24 @@ class Config {
     }
     
     public static function setCorsHeaders() {
-        header("Access-Control-Allow-Origin: *");
+        if (isset($_SERVER['HTTP_ORIGIN'])) {
+            header("Access-Control-Allow-Origin: " . $_SERVER['HTTP_ORIGIN']);
+        } else {
+            header("Access-Control-Allow-Origin: *");
+        }
         header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-        header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-Api-Token, X-Auth-Token");
+        
+        $reqHeaders = $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'] ?? 'Content-Type, Authorization, X-Requested-With, X-Api-Token, X-Auth-Token, Cache-Control, Pragma, Expires, If-Modified-Since, Accept, Origin';
+        header("Access-Control-Allow-Headers: {$reqHeaders}");
         header("Access-Control-Allow-Credentials: true");
+        header("Access-Control-Max-Age: 86400");
+        
+        // Strict Anti-Caching Headers for NGINX, FastCGI, Proxies & Browsers
+        header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0");
+        header("Pragma: no-cache");
+        header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+        header("X-Accel-Expires: 0"); // Directs NGINX FastCGI / Proxy Cache to NEVER cache
+        header("X-Accel-Buffering: no"); // Disables proxy response buffering delays
         
         if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
             http_response_code(200);

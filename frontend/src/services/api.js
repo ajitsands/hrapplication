@@ -4,8 +4,11 @@ const getApiBase = () => {
   if (import.meta.env.DEV) {
     return '/api';
   }
-  if (typeof window !== 'undefined' && window.location.hostname.includes('trackmyteam.us')) {
-    return 'https://trackmyteam.us/hr.trackmyteam.us/api.php';
+  if (typeof window !== 'undefined') {
+    // If hosted under a subfolder path like https://trackmyteam.us/hr.trackmyteam.us/
+    if (window.location.pathname.startsWith('/hr.trackmyteam.us')) {
+      return '/hr.trackmyteam.us/api.php';
+    }
   }
   return '/api.php';
 };
@@ -13,15 +16,15 @@ const getApiBase = () => {
 const API_BASE = getApiBase();
 
 export const getDownloadBridgeUrl = () => {
-  if (typeof window !== 'undefined' && window.location.hostname.includes('trackmyteam.us')) {
-    return 'https://trackmyteam.us/hr.trackmyteam.us/api.php/download/card-bridge';
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/hr.trackmyteam.us')) {
+    return '/hr.trackmyteam.us/api.php/download/card-bridge';
   }
-  return '/api/download/card-bridge';
+  return '/api.php/download/card-bridge';
 };
 
 export const getSetupGuideUrl = () => {
-  if (typeof window !== 'undefined' && window.location.hostname.includes('trackmyteam.us')) {
-    return 'https://trackmyteam.us/hr.trackmyteam.us/BAHRAIN_SMART_CARD_SETUP_GUIDE.html';
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/hr.trackmyteam.us')) {
+    return '/hr.trackmyteam.us/BAHRAIN_SMART_CARD_SETUP_GUIDE.html';
   }
   return '/BAHRAIN_SMART_CARD_SETUP_GUIDE.html';
 };
@@ -37,6 +40,8 @@ export const api = {
   async request(endpoint, options = {}) {
     const token = this.getToken();
     const headers = {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
       ...options.headers
     };
 
@@ -51,14 +56,20 @@ export const api = {
     }
 
     const config = {
+      cache: 'no-store', // Tells browser and proxies never to serve cached responses
       ...options,
       headers
     };
 
     let targetUrl = `${API_BASE}${endpoint}`;
+    
+    // Append dynamic cache-buster timestamp so Nginx and proxies never return stale cache
+    const cacheBuster = `_t=${Date.now()}`;
+    const sep1 = targetUrl.includes('?') ? '&' : '?';
+    targetUrl = `${targetUrl}${sep1}${cacheBuster}`;
+
     if (token) {
-      const sep = targetUrl.includes('?') ? '&' : '?';
-      targetUrl = `${targetUrl}${sep}token=${encodeURIComponent(token)}`;
+      targetUrl = `${targetUrl}&token=${encodeURIComponent(token)}`;
     }
 
     try {

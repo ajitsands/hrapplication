@@ -124,7 +124,7 @@ export const SaNDSLabModal = ({ isOpen, onClose }) => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
           {/* Button 1: WhatsApp Support */}
           <a
-            href="https://wa.me/9135078079?text=Hello%20SaNDS%20Lab%20Support%2C%20I%20am%20reaching%20out%20regarding%20the%20Gulf%20HR%20%26%20Payroll%20System."
+            href="https://wa.me/97335078079?text=Hello%20SaNDS%20Lab%20Support%2C%20I%20am%20reaching%20out%20regarding%20the%20Gulf%20HR%20%26%20Payroll%20System."
             target="_blank"
             rel="noopener noreferrer"
             style={{
@@ -149,7 +149,7 @@ export const SaNDSLabModal = ({ isOpen, onClose }) => {
               </div>
               <div style={{ textAlign: 'left' }}>
                 <div style={{ fontSize: '0.9rem', lineHeight: 1.2 }}>Support on WhatsApp</div>
-                <div style={{ fontSize: '0.75rem', opacity: 0.9, fontWeight: 500 }}>+9135078079 • Live Instant Assistance</div>
+                <div style={{ fontSize: '0.75rem', opacity: 0.9, fontWeight: 500 }}>+97335078079 • Live Instant Assistance</div>
               </div>
             </div>
             <ExternalLink size={16} />
@@ -190,7 +190,7 @@ export const SaNDSLabModal = ({ isOpen, onClose }) => {
 
           {/* Button 3: Our Website */}
           <a
-            href="https://home.sandslab.com"
+            href="https://www.sandslab.com"
             target="_blank"
             rel="noopener noreferrer"
             style={{
@@ -216,7 +216,7 @@ export const SaNDSLabModal = ({ isOpen, onClose }) => {
               </div>
               <div style={{ textAlign: 'left' }}>
                 <div style={{ fontSize: '0.9rem', lineHeight: 1.2 }}>Our Official Website</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted, #94a3b8)', fontWeight: 500 }}>home.sandslab.com</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted, #94a3b8)', fontWeight: 500 }}>www.sandslab.com</div>
               </div>
             </div>
             <ExternalLink size={16} color="var(--text-secondary, #475569)" />

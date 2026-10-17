@@ -624,7 +624,7 @@ export const UserManualModal = ({ isOpen, onClose }) => {
                       Q3: How do I contact official technical support?
                     </h4>
                     <p style={{ margin: 0, fontSize: '0.85rem', color: '#475569', lineHeight: 1.5 }}>
-                      Click on the <strong>SaNDS Lab</strong> link in the footer to open the support popup, or message WhatsApp directly at <strong>+9135078079</strong>.
+                      Click on the <strong>SaNDS Lab</strong> link in the footer to open the support popup, or message WhatsApp directly at <strong>+97335078079</strong>.
                     </p>
                   </div>
                 </div>
@@ -781,7 +781,7 @@ export const UserManualModal = ({ isOpen, onClose }) => {
             {/* Quick Contact Footer in Sidebar */}
             <div style={{ padding: '0.85rem', borderTop: '1px solid #e2e8f0', background: '#f1f5f9', fontSize: '0.75rem', color: '#64748b' }}>
               <div style={{ fontWeight: 700, color: '#0f172a' }}>Engineered by SaNDS Lab</div>
-              <div>WhatsApp Support: <strong>+9135078079</strong></div>
+              <div>WhatsApp Support: <strong>+97335078079</strong></div>
             </div>
           </div>
 

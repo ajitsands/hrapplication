@@ -17,6 +17,11 @@ class Controller {
     protected function jsonResponse($data, int $statusCode = 200): void {
         http_response_code($statusCode);
         header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0');
+        header('Pragma: no-cache');
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+        header('X-Accel-Expires: 0'); // Direct NGINX directive to disable FastCGI/Proxy caching
+        header('X-Accel-Buffering: no');
         echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
         exit();
     }

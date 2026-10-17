@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { ShieldCheck, UserCheck, KeyRound, Globe2, Sparkles, Building2, Zap } from 'lucide-react';
+import { UserCheck, KeyRound, Globe2, Sparkles, Building2, Zap } from 'lucide-react';
 
 export const Login = () => {
   const { login, settings } = useAuth();
@@ -151,18 +151,6 @@ export const Login = () => {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              style={{ justifyContent: 'space-between', padding: '0.6rem 0.95rem', background: '#f8faff', border: '1px solid #bfdbfe' }}
-              onClick={() => handleDemoLogin('admin', 'password123')}
-            >
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 700, color: 'var(--primary)' }}>
-                <ShieldCheck size={16} /> System Administrator
-              </span>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>admin</span>
-            </button>
-
             <button
               type="button"
               className="btn btn-secondary btn-sm"

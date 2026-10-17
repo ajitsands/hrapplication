@@ -1,0 +1,141 @@
+=== PAGE 1 ===
+PREPARED BY:
+ ENTERPRISE EDITION 2026
+🇧🇭  Kingdom of Bahrain & GCC Regional Compliance
+Gulf Enterprise HR & Payroll Solution
+Comprehensive System Functionality Specification, Statutory Rules Engine,
+Hardware Integration Architecture & Operational Workflow Documentation.
+Bahrain Labor Law 36/2012
+Aut
+
+=== PAGE 2 ===
+Executive Functionality Document • UGC-HRMS-DOC-2026-V2
+00 Table of Contents & Executive Document Control
+Document Governance & Control
+Project Name: Gulf Enterprise HR & Payroll Solution
+Document Title: Comprehensive System Functionality &
+Workflow Document
+Prepared By: Uniglobal Consultancy
+Powere
+
+=== PAGE 3 ===
+Sec # Chapter Title Core Scope & Functional Highlights Type
+14 Loans & Salary Advance Schedules Loan disbursement, automated monthly EMI deduction during
+payroll run, repayment ledger.
+FINANCE
+15 Regional Settings & Organizational
+Masters
+1-Click GCC presets (BH, KSA, UAE, KW, QA, OM), departments,
+
+=== PAGE 4 ===
+Section 01: Executive Overview & GCC Compliance Framework
+01 Executive Overview & GCC Compliance Framework
+1.1 Strategic Solution Purpose
+The Gulf Enterprise HR & Payroll Solution is a mission-critical Human Resource Management, Workforce Attendance, and
+Payroll Processing platform engineered specif
+
+=== PAGE 5 ===
+basic salaries, variable allowances, hourly overtime fractions, loan EMI deductions, and net payouts. System timestamps and
+attendance clocks strictly utilize Asia/Bahrain (GMT+3) timezone synchronization.
+Prepared by Uniglobal Consultancy • Powered by SaNDS lab Middle East W.L.L. Page 2 of 12
+
+=== PAGE 6 ===
+Section 02: System Architecture & Technical Specifications
+02 System Architecture & Technical Stack
+2.1 Pure Core PHP MVC Architecture (Zero-Bloat Foundation)
+Unlike conventional bloated enterprise suites that bundle thousands of unnecessary vendor dependencies and suffer from
+slow execution, this s
+
+=== PAGE 7 ===
+Because all backend endpoints adhere strictly to stateless RESTful JSON conventions with token-based authentication, the
+system is architected for immediate Phase 2 plug-and-play connectivity with React Native (iOS & Android) mobile
+applications for Employee Self-Service (ESS), mobile check-in, leav
+
+=== PAGE 8 ===
+Section 03: Role-Based Access Control (RBAC) & Security
+03 Role-Based Access Control & User Permissions
+3.1 Role Hierarchy & Segregation of Duties
+Security governance enforces strict Segregation of Duties (SoD) through three standardized corporate access roles:
+ADMIN System Administrator
+Full admini
+
+=== PAGE 9 ===
+Prepared by Uniglobal Consultancy • Powered by SaNDS lab Middle East W.L.L. Page 4 of 12
+
+=== PAGE 10 ===
+Sections 04 & 05: Dashboard Radar & Employee Lifecycle
+04 Executive Dashboard & GCC KPI Radar
+The Dashboard serves as the central flight deck for executive management and HR leaders, providing real-time operational
+visibility across workforce attendance, payroll liability, and statutory compliance d
+
+=== PAGE 11 ===
+Section 06: Bahrain Smart Card (CPR) Hardware Integration
+06 Bahrain Smart Card (CPR) Hardware Bridge
+6.1 SaNDSLabCardBridge Architecture & Technology Stack
+One of the crowning technical innovations of the platform is the native Bahrain CPR Smart Card Reader Integration. Built as
+a specialized .NET
+
+=== PAGE 12 ===
+Prepared by Uniglobal Consultancy • Powered by SaNDS lab Middle East W.L.L. Page 6 of 12
+
+=== PAGE 13 ===
+Sections 07 & 08: Shifts, Biometrics & Overtime Engine
+07 Shift Management & Multi-Shift Rostering
+7.1 Shift Master Configuration Parameters
+Enterprises operate diverse operational shifts across corporate, retail, security, and industrial divisions. The Shift Master
+module allows administrators to d
+
+=== PAGE 14 ===
+Overtime
+Classification
+Statutory
+Rate Trigger Condition Accounting Application
+Normal Working Day
+Overtime
+1.25x
+(125%)
+Work hours exceeding 8.0 standard shift hours on
+normal business days.
+OT Pay = Excess Hours * Hourly
+Wage * 1.25
+Night Overtime
+Premium
+1.50x
+(150%)
+Hours worked during nighttime
+
+=== PAGE 15 ===
+Section 09: 1-31 Landscape Monthly Attendance Matrix Sheet
+09 1-31 Landscape Monthly Attendance Matrix
+9.1 Landscape Calendar Grid (Days 1 to 31) Visualization
+For executive audit compliance, Ministry of Labour inspection, and payroll validation, the application features an official 1-31
+Landscape M
+
+=== PAGE 16 ===
+Sections 10 & 11: Gulf Payroll Engine & Official A5 Payslips
+10 Gulf Payroll Engine & Statutory Deductions
+10.1 Batch Payroll Processing Pipeline
+The payroll engine processes monthly disbursements through a secure, high-speed automated pipeline. HR administrators
+select the target Pay Period (Month
+
+=== PAGE 17 ===
+Sections 12 & 13: Indemnity (EOSB) & Leaves Engine
+12 Indemnity (EOSB) & Final Settlement Engine
+12.1 Statutory Bahrain Gratuity Formula (Law No. 36/2012, Article 116)
+When an employee concludes their service, the system calculates End of Service Benefits (Indemnity) based on exact
+continuous servic
+
+=== PAGE 18 ===
+Sections 14, 15 & 16: Loans, Settings & Operational Workflows
+14 Loans & Salary Advance Schedules
+HR administrators can record employee emergency loans and salary advances, specifying the Principal Disbursed Amount,
+Tenure (e.g. 6, 12, 24 months), and start date. The system automatically computes th
+
+=== PAGE 19 ===
+Section 17: Consultant & Technology Partner Credentials
+17 Solution Credentials & Vendor Profiles
+PREPARED BY:
+Uniglobal Consultancy
+Strategic Management, Human Resources Advisory & Regional Corporate Implementation
+Uniglobal Consultancy is a premier management consulting and human resource advisory
+
