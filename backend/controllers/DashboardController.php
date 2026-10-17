@@ -24,6 +24,74 @@ class DashboardController extends Controller {
     public function stats(): void {
         $db = Database::getConnection();
         
+        // If employee role, return personal dashboard stats
+        if ($this->authUser && $this->authUser['role'] === 'employee') {
+            $empId = (int)($this->authUser['employee_id'] ?? 0);
+            if ($empId <= 0) {
+                $findEmp = $db->prepare("SELECT id FROM employees WHERE email = ? OR cpr_no = ? LIMIT 1");
+                $findEmp->execute([$this->authUser['email'] ?? '', $this->authUser['username'] ?? '']);
+                $found = $findEmp->fetch(PDO::FETCH_ASSOC);
+                if ($found) {
+                    $empId = (int)$found['id'];
+                }
+            }
+            
+            // Employee personal info
+            $empStmt = $db->prepare("SELECT e.*, d.name as department_name, des.name as designation_name FROM employees e LEFT JOIN departments d ON e.department_id = d.id LEFT JOIN designations des ON e.designation_id = des.id WHERE e.id = ?");
+            $empStmt->execute([$empId]);
+            $employee = $empStmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Personal leave stats
+            $leaveStmt = $db->prepare("SELECT COUNT(*) as pending_count FROM leave_applications WHERE employee_id = ? AND status = 'Pending'");
+            $leaveStmt->execute([$empId]);
+            $pendingLeaves = (int)$leaveStmt->fetchColumn();
+            
+            // Personal active loan
+            $loanStmt = $db->prepare("SELECT COALESCE(SUM(remaining_amount), 0) FROM loans WHERE employee_id = ? AND status = 'Active'");
+            $loanStmt->execute([$empId]);
+            $loanTotal = (float)$loanStmt->fetchColumn();
+            
+            // Personal attendance this month
+            $month = (int)date('n');
+            $year = (int)date('Y');
+            $attStmt = $db->prepare("SELECT COUNT(*) as present_days, COALESCE(SUM(ot_hours), 0) as total_ot FROM attendance WHERE employee_id = ? AND MONTH(date) = ? AND YEAR(date) = ? AND status = 'Present'");
+            $attStmt->execute([$empId, $month, $year]);
+            $attStats = $attStmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Personal document expiries (cpr, passport, visa)
+            $personalDocs = [];
+            if ($employee) {
+                $today = new \DateTime();
+                foreach (['CPR Card' => 'cpr_expiry', 'Passport' => 'passport_expiry', 'Residence Visa' => 'visa_expiry', 'Driving License' => 'driving_license_expiry'] as $type => $field) {
+                    if (!empty($employee[$field])) {
+                        $exp = new \DateTime($employee[$field]);
+                        $diff = (int)$today->diff($exp)->format("%r%a");
+                        if ($diff <= 60) {
+                            $personalDocs[] = [
+                                'doc_name' => $type,
+                                'expiry_date' => $employee[$field],
+                                'days_left' => $diff
+                            ];
+                        }
+                    }
+                }
+            }
+            
+            $settings = $this->settingModel->getSettings();
+            
+            $this->successResponse([
+                'is_employee' => true,
+                'employee' => $employee,
+                'pending_leaves_count' => $pendingLeaves,
+                'active_loans_total' => $loanTotal,
+                'month_present_days' => (int)($attStats['present_days'] ?? 0),
+                'month_ot_hours' => (float)($attStats['total_ot'] ?? 0.0),
+                'personal_expiries' => $personalDocs,
+                'settings' => $settings
+            ], 'Employee personal dashboard retrieved');
+            return;
+        }
+        
         // 1. Employee Counts
         $totalEmp = (int)$db->query("SELECT COUNT(*) FROM employees WHERE status = 'Active'")->fetchColumn();
         $gccCitizens = (int)$db->query("SELECT COUNT(*) FROM employees WHERE status = 'Active' AND is_gcc_citizen = 1")->fetchColumn();

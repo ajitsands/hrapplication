@@ -28,7 +28,25 @@ class AttendanceController extends Controller {
         $empId = !empty($_GET['employee_id']) ? (int)$_GET['employee_id'] : null;
         
         if ($this->authUser && $this->authUser['role'] === 'employee') {
-            $empId = (int)$this->authUser['employee_id'];
+            $empId = (int)($this->authUser['employee_id'] ?? 0);
+            if ($empId <= 0) {
+                $db = Database::getConnection();
+                $findEmp = $db->prepare("SELECT id FROM employees WHERE email = ? OR cpr_no = ? LIMIT 1");
+                $findEmp->execute([$this->authUser['email'] ?? '', $this->authUser['username'] ?? '']);
+                $found = $findEmp->fetch(PDO::FETCH_ASSOC);
+                if ($found) {
+                    $empId = (int)$found['id'];
+                }
+            }
+            if ($empId <= 0) {
+                $this->successResponse([
+                    'month' => $month,
+                    'year' => $year,
+                    'records' => [],
+                    'summary' => []
+                ], 'No employee profile linked to this user account');
+                return;
+            }
         }
         
         $records = $this->attModel->getMonthlyRecords($empId, $month, $year, $deptId);
@@ -43,6 +61,7 @@ class AttendanceController extends Controller {
     }
     
     public function mark(): void {
+        $this->requireAdminOrHr();
         $data = $this->getRequestData();
         $empId = (int)($data['employee_id'] ?? 0);
         $date = $data['date'] ?? date('Y-m-d');

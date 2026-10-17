@@ -51,6 +51,156 @@ export const Dashboard = ({ setActiveTab }) => {
     );
   }
 
+  // Employee ESS (Self-Service) Dashboard
+  if (user?.role === 'employee' || stats?.is_employee) {
+    const emp = stats.employee || {};
+    const totalSalary = parseFloat(emp.basic_salary || 0) +
+      parseFloat(emp.housing_allowance || 0) +
+      parseFloat(emp.transport_allowance || 0) +
+      parseFloat(emp.car_allowance || 0) +
+      parseFloat(emp.mobile_allowance || 0) +
+      parseFloat(emp.food_allowance || 0) +
+      parseFloat(emp.other_allowance || 0);
+
+    return (
+      <div>
+        {/* Page Header */}
+        <div className="page-header">
+          <div className="page-title-group">
+            <h2>Welcome back, {emp.first_name || user?.username}!</h2>
+            <p>
+              {emp.emp_code ? `Employee ID: ${emp.emp_code} • ` : ''}
+              {emp.designation_name || 'Staff'} • {emp.department_name || 'General'}
+            </p>
+          </div>
+
+          <div className="header-action-group">
+            <button className="btn btn-primary" onClick={() => setActiveTab('attendance')}>
+              <Clock size={16} /> My Attendance
+            </button>
+            <button className="btn btn-gold" onClick={() => setActiveTab('payroll')}>
+              <Calculator size={16} /> My Payslips
+            </button>
+            <button className="btn btn-secondary" onClick={() => setActiveTab('leaves')}>
+              <CalendarCheck2 size={16} /> Apply Leave
+            </button>
+          </div>
+        </div>
+
+        {/* Employee KPI Stats Cards */}
+        <div className="grid-stats">
+          <div className="stat-card">
+            <div className="stat-info">
+              <div className="stat-label">Monthly Gross Package</div>
+              <div className="stat-value">{formatCurrency(totalSalary)}</div>
+              <div className="stat-sub">
+                <span>Basic: {formatCurrency(emp.basic_salary || 0)} + Allowances</span>
+              </div>
+            </div>
+            <div className="stat-icon-wrapper">
+              <Coins size={24} />
+            </div>
+          </div>
+
+          <div className="stat-card gold">
+            <div className="stat-info">
+              <div className="stat-label">This Month Attendance</div>
+              <div className="stat-value">{stats.month_present_days || 0} Days</div>
+              <div className="stat-sub">
+                <span>Present in current month</span>
+              </div>
+            </div>
+            <div className="stat-icon-wrapper gold">
+              <Clock size={24} />
+            </div>
+          </div>
+
+          <div className="stat-card pink">
+            <div className="stat-info">
+              <div className="stat-label">Overtime Logged</div>
+              <div className="stat-value" style={{ color: 'var(--accent-pink)' }}>
+                {(stats.month_ot_hours || 0).toFixed(1)} hrs
+              </div>
+              <div className="stat-sub">
+                <span>Bahrain Law Multiplier Applied</span>
+              </div>
+            </div>
+            <div className="stat-icon-wrapper pink">
+              <Sparkles size={24} />
+            </div>
+          </div>
+
+          <div className="stat-card info">
+            <div className="stat-info">
+              <div className="stat-label">Pending Leave Requests</div>
+              <div className="stat-value">{stats.pending_leaves_count || 0}</div>
+              <div className="stat-sub">
+                <span>Active applications</span>
+              </div>
+            </div>
+            <div className="stat-icon-wrapper info">
+              <CalendarCheck2 size={24} />
+            </div>
+          </div>
+        </div>
+
+        {/* Document Expiries Card for this Employee */}
+        <div style={{ marginTop: '1.5rem' }}>
+          <div className="card">
+            <div className="card-header">
+              <div className="card-title">
+                <FileText size={18} color="var(--primary)" />
+                <span>My Official Documents &amp; Smart Card Expiries</span>
+              </div>
+            </div>
+
+            {stats.personal_expiries && stats.personal_expiries.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {stats.personal_expiries.map((doc, idx) => {
+                  const isUrgent = doc.days_left <= 30;
+                  return (
+                    <div
+                      key={idx}
+                      style={{
+                        padding: '0.75rem 1rem',
+                        borderRadius: 'var(--radius-md)',
+                        background: isUrgent ? '#fef2f2' : '#fffbeb',
+                        border: `1px solid ${isUrgent ? '#fecaca' : '#fef3c7'}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '1rem'
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f172a' }}>
+                          {doc.doc_name}
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                          Valid until {formatDate(doc.expiry_date)}
+                        </div>
+                      </div>
+
+                      <span className={`badge ${isUrgent ? 'badge-expiry-urgent' : 'badge-expiry-warning'}`}>
+                        {doc.days_left < 0 ? `Expired ${Math.abs(doc.days_left)}d ago` : `${doc.days_left} Days Left`}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--success)' }}>
+                <CheckCircle size={36} style={{ margin: '0 auto 0.5rem auto' }} />
+                <p style={{ fontWeight: 700 }}>Your CPR Smart Card, Passport, and Visa documents are fully up to date!</p>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>No renewals required within the next 60 days.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* Page Header */}

@@ -41,6 +41,10 @@ const AppContent = () => {
         if (activeTab === 'vendor_license') {
           setActiveTab('dashboard');
         }
+        // Employee role must never be on admin-only tabs
+        if (user.role === 'employee' && ['shifts', 'employees', 'indemnity', 'settings'].includes(activeTab)) {
+          setActiveTab('dashboard');
+        }
       }
     } else {
       setActiveTab('dashboard');

@@ -34,14 +34,17 @@ import {
 import confetti from 'canvas-confetti';
 
 export const Attendance = ({ initialSubTab = 'daily' }) => {
-  const { formatDate, formatCurrency, showToast, settings } = useAuth();
-  const [activeSubTab, setActiveSubTab] = useState(initialSubTab);
+  const { user, formatDate, formatCurrency, showToast, settings } = useAuth();
+  const isAdminOrHr = user && (user.role === 'admin' || user.role === 'hr' || user.role === 'super_admin' || user.role === 'superadmin');
+  const [activeSubTab, setActiveSubTab] = useState(isAdminOrHr ? initialSubTab : 'daily');
 
   useEffect(() => {
-    if (initialSubTab) {
+    if (!isAdminOrHr) {
+      setActiveSubTab('daily');
+    } else if (initialSubTab) {
       setActiveSubTab(initialSubTab);
     }
-  }, [initialSubTab]);
+  }, [initialSubTab, isAdminOrHr]);
 
   const [records, setRecords] = useState([]);
   const [summary, setSummary] = useState([]);
@@ -99,6 +102,7 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
   }, []);
 
   const fetchBatches = async () => {
+    if (!isAdminOrHr) return;
     try {
       const res = await api.get('/attendance/batches');
       if (res.success) {
@@ -112,25 +116,34 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [attRes, empRes, deptRes, batchRes] = await Promise.all([
-        api.get('/attendance', { month, year, employee_id: selectedEmp }),
-        api.get('/employees'),
-        api.get('/employees/departments'),
-        api.get('/attendance/batches')
-      ]);
+      if (isAdminOrHr) {
+        const [attRes, empRes, deptRes, batchRes] = await Promise.all([
+          api.get('/attendance', { month, year, employee_id: selectedEmp }),
+          api.get('/employees').catch(() => ({ success: false, data: [] })),
+          api.get('/employees/departments').catch(() => ({ success: false, data: [] })),
+          api.get('/attendance/batches').catch(() => ({ success: false, data: [] }))
+        ]);
 
-      if (attRes.success) {
-        setRecords(attRes.data.records || []);
-        setSummary(attRes.data.summary || []);
-      }
-      if (empRes.success) {
-        setEmployees(empRes.data || []);
-      }
-      if (deptRes.success) {
-        setDepartments(deptRes.data || []);
-      }
-      if (batchRes && batchRes.success) {
-        setImportBatches(batchRes.data || []);
+        if (attRes.success) {
+          setRecords(attRes.data.records || []);
+          setSummary(attRes.data.summary || []);
+        }
+        if (empRes?.success) {
+          setEmployees(empRes.data || []);
+        }
+        if (deptRes?.success) {
+          setDepartments(deptRes.data || []);
+        }
+        if (batchRes?.success) {
+          setImportBatches(batchRes.data || []);
+        }
+      } else {
+        // Employee ESS: Only fetch own attendance records
+        const attRes = await api.get('/attendance', { month, year });
+        if (attRes?.success) {
+          setRecords(attRes.data.records || []);
+          setSummary(attRes.data.summary || []);
+        }
       }
     } catch (err) {
       showToast('Error', 'Failed to load attendance records', 'error');
@@ -535,134 +548,140 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
       >
         <div className="page-title-group" style={{ minWidth: 0, flex: '1 1 auto' }}>
           <h2 style={{ fontSize: '1.5rem', marginBottom: '0.15rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            Attendance, Shifts &amp; Biometric Overtime Engine
+            {isAdminOrHr ? 'Attendance, Shifts & Biometric Overtime Engine' : 'My Attendance & Biometric Punches'}
           </h2>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            Multi-shift rostering, punch terminal synchronization, automated Bahrain Labor Law overtime, and leave correlation
+            {isAdminOrHr
+              ? 'Multi-shift rostering, punch terminal synchronization, automated Bahrain Labor Law overtime, and leave correlation'
+              : 'View your daily punch in/out times, working hours, and automated Bahrain Labor Law overtime'}
           </p>
         </div>
 
+        {isAdminOrHr && (
+          <div
+            className="header-action-group"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              flexWrap: 'nowrap',
+              flexShrink: 0
+            }}
+          >
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={downloadAttendanceTemplate}
+              title="Download standard CSV template with employee codes"
+              style={{
+                padding: '0.4rem 0.65rem',
+                fontSize: '0.78rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                fontWeight: 700,
+                whiteSpace: 'nowrap'
+              }}
+            >
+              <Download size={14} /> Download Template
+            </button>
+            <button
+              className="btn btn-gold btn-sm"
+              onClick={openLandscapeReportModal}
+              title="Print Landscape Monthly Attendance & OT Sheet"
+              style={{
+                padding: '0.4rem 0.65rem',
+                fontSize: '0.78rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                fontWeight: 700,
+                whiteSpace: 'nowrap'
+              }}
+            >
+              <Printer size={14} /> Landscape Print
+            </button>
+            <button
+              className="btn btn-pink btn-sm"
+              onClick={openImportModal}
+              title="Import Biometric CSV & Manage Batches"
+              style={{
+                padding: '0.4rem 0.65rem',
+                fontSize: '0.78rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                fontWeight: 700,
+                whiteSpace: 'nowrap'
+              }}
+            >
+              <UploadCloud size={14} /> Import CSV ({importBatches.length})
+            </button>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => setIsManualModalOpen(true)}
+              title="Mark Manual Attendance Punch"
+              style={{
+                padding: '0.4rem 0.65rem',
+                fontSize: '0.78rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                fontWeight: 700,
+                whiteSpace: 'nowrap'
+              }}
+            >
+              <Plus size={14} /> Mark Manual
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* SUB-NAVIGATION TABS FOR ATTENDANCE & SHIFTS (ADMIN / HR ONLY) */}
+      {isAdminOrHr && (
         <div
-          className="header-action-group"
+          className="attendance-subnav-tabs no-print"
           style={{
             display: 'flex',
-            alignItems: 'center',
-            gap: '0.45rem',
-            flexWrap: 'nowrap',
-            flexShrink: 0
+            gap: '0.5rem',
+            marginBottom: '1.5rem',
+            borderBottom: '1px solid var(--border-subtle)',
+            paddingBottom: '0.75rem',
+            flexWrap: 'wrap'
           }}
         >
           <button
-            className="btn btn-secondary btn-sm"
-            onClick={downloadAttendanceTemplate}
-            title="Download standard CSV template with employee codes"
-            style={{
-              padding: '0.4rem 0.65rem',
-              fontSize: '0.78rem',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              fontWeight: 700,
-              whiteSpace: 'nowrap'
-            }}
+            className={`btn btn-sm ${activeSubTab === 'daily' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setActiveSubTab('daily')}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 700 }}
           >
-            <Download size={14} /> Download Template
+            <Clock size={16} /> Daily Log &amp; Biometrics
           </button>
+
           <button
-            className="btn btn-gold btn-sm"
-            onClick={openLandscapeReportModal}
-            title="Print Landscape Monthly Attendance & OT Sheet"
-            style={{
-              padding: '0.4rem 0.65rem',
-              fontSize: '0.78rem',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              fontWeight: 700,
-              whiteSpace: 'nowrap'
-            }}
+            className={`btn btn-sm ${activeSubTab === 'shifts' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setActiveSubTab('shifts')}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 700 }}
           >
-            <Printer size={14} /> Landscape Print
+            <Sparkles size={16} /> Shift Master &amp; Policies
           </button>
+
           <button
-            className="btn btn-pink btn-sm"
-            onClick={openImportModal}
-            title="Import Biometric CSV & Manage Batches"
-            style={{
-              padding: '0.4rem 0.65rem',
-              fontSize: '0.78rem',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              fontWeight: 700,
-              whiteSpace: 'nowrap'
-            }}
+            className={`btn btn-sm ${activeSubTab === 'roster' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setActiveSubTab('roster')}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 700 }}
           >
-            <UploadCloud size={14} /> Import CSV ({importBatches.length})
+            <CalendarDays size={16} /> Monthly Shift Rostering
           </button>
+
           <button
-            className="btn btn-primary btn-sm"
-            onClick={() => setIsManualModalOpen(true)}
-            title="Mark Manual Attendance Punch"
-            style={{
-              padding: '0.4rem 0.65rem',
-              fontSize: '0.78rem',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              fontWeight: 700,
-              whiteSpace: 'nowrap'
-            }}
+            className={`btn btn-sm ${activeSubTab === 'report' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setActiveSubTab('report')}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 700 }}
           >
-            <Plus size={14} /> Mark Manual
+            <FileSpreadsheet size={16} /> Monthly Attendance Report
           </button>
         </div>
-      </div>
-
-      {/* SUB-NAVIGATION TABS FOR ATTENDANCE & SHIFTS */}
-      <div
-        className="attendance-subnav-tabs no-print"
-        style={{
-          display: 'flex',
-          gap: '0.5rem',
-          marginBottom: '1.5rem',
-          borderBottom: '1px solid var(--border-subtle)',
-          paddingBottom: '0.75rem',
-          flexWrap: 'wrap'
-        }}
-      >
-        <button
-          className={`btn btn-sm ${activeSubTab === 'daily' ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => setActiveSubTab('daily')}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 700 }}
-        >
-          <Clock size={16} /> Daily Log &amp; Biometrics
-        </button>
-
-        <button
-          className={`btn btn-sm ${activeSubTab === 'shifts' ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => setActiveSubTab('shifts')}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 700 }}
-        >
-          <Sparkles size={16} /> Shift Master &amp; Policies
-        </button>
-
-        <button
-          className={`btn btn-sm ${activeSubTab === 'roster' ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => setActiveSubTab('roster')}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 700 }}
-        >
-          <CalendarDays size={16} /> Monthly Shift Rostering
-        </button>
-
-        <button
-          className={`btn btn-sm ${activeSubTab === 'report' ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => setActiveSubTab('report')}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 700 }}
-        >
-          <FileSpreadsheet size={16} /> Monthly Attendance Report
-        </button>
-      </div>
+      )}
 
       {/* VIEW 1: SHIFT MASTER */}
       {activeSubTab === 'shifts' && <ShiftMaster />}
@@ -749,10 +768,10 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
 
         <div className="stat-card gold">
           <div className="stat-info">
-            <div className="stat-label">Active Staff Monitored</div>
-            <div className="stat-value">{employees.length}</div>
+            <div className="stat-label">{isAdminOrHr ? 'Active Staff Monitored' : 'Days Present'}</div>
+            <div className="stat-value">{isAdminOrHr ? employees.length : presentCount}</div>
             <div className="stat-sub">
-              <span>Biometric synced</span>
+              <span>{isAdminOrHr ? 'Biometric synced' : `of ${records.length} logged days`}</span>
             </div>
           </div>
           <div className="stat-icon-wrapper gold">
@@ -822,17 +841,19 @@ export const Attendance = ({ initialSubTab = 'daily' }) => {
               <option value={2027}>2027</option>
             </select>
 
-            <select
-              className="form-control"
-              style={{ width: 'auto', padding: '0.45rem 0.75rem', fontSize: '0.85rem' }}
-              value={selectedEmp}
-              onChange={(e) => setSelectedEmp(e.target.value)}
-            >
-              <option value="">All Employees ({employees.length})</option>
-              {employees.map((emp) => (
-                <option key={emp.id} value={emp.id}>{emp.emp_code} - {emp.first_name} {emp.last_name}</option>
-              ))}
-            </select>
+            {isAdminOrHr && employees.length > 0 && (
+              <select
+                className="form-control"
+                style={{ width: 'auto', padding: '0.45rem 0.75rem', fontSize: '0.85rem' }}
+                value={selectedEmp}
+                onChange={(e) => setSelectedEmp(e.target.value)}
+              >
+                <option value="">All Employees ({employees.length})</option>
+                {employees.map((emp) => (
+                  <option key={emp.id} value={emp.id}>{emp.emp_code} - {emp.first_name} {emp.last_name}</option>
+                ))}
+              </select>
+            )}
           </div>
         }
       />

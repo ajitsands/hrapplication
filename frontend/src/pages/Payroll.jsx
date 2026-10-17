@@ -278,8 +278,8 @@ export const Payroll = () => {
       {/* Page Header */}
       <div className="page-header" style={{ marginBottom: '1.25rem', alignItems: 'center' }}>
         <div className="page-title-group">
-          <h2>Payroll Processing & A5 Payslip Generator</h2>
-          <p>Bahrain Labor Law compliant calculations: GOSI, LMRA, Overtime multipliers, Loans & Allowances</p>
+          <h2>{isAdminOrHr ? 'Payroll Processing & A5 Payslip Generator' : 'My Salary & Payslip History'}</h2>
+          <p>{isAdminOrHr ? 'Bahrain Labor Law compliant calculations: GOSI, LMRA, Overtime multipliers, Loans & Allowances' : 'Review your monthly salary breakdown, GOSI contributions, and download official A5 payslips'}</p>
         </div>
 
         <div className="header-action-group" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
@@ -307,10 +307,12 @@ export const Payroll = () => {
                     }}
                   >
                     <div style={{ fontSize: '0.825rem', fontWeight: 700, lineHeight: 1.2 }}>{p.title}</div>
-                    <div style={{ fontSize: '0.72rem', opacity: isSelected ? 0.92 : 0.75, display: 'flex', gap: '0.4rem', marginTop: '0.15rem' }}>
-                      <span>{p.total_employees} Employees</span>
-                      <span>• {formatCurrency(p.total_net)}</span>
-                    </div>
+                    {isAdminOrHr && (
+                      <div style={{ fontSize: '0.72rem', opacity: isSelected ? 0.92 : 0.75, display: 'flex', gap: '0.4rem', marginTop: '0.15rem' }}>
+                        <span>{p.total_employees} Employees</span>
+                        <span>• {formatCurrency(p.total_net)}</span>
+                      </div>
+                    )}
                   </button>
                 );
               })}
@@ -337,40 +339,67 @@ export const Payroll = () => {
                 </span>
               </div>
               <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
-                Period: {formatDate(selectedPeriod.start_date)} to {formatDate(selectedPeriod.end_date)} • Processed for {selectedPeriod.total_employees} staff members
+                Period: {formatDate(selectedPeriod.start_date)} to {formatDate(selectedPeriod.end_date)}
+                {isAdminOrHr && ` • Processed for ${selectedPeriod.total_employees} staff members`}
               </p>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
-              <div>
-                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700 }}>Total Gross</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)' }}>{formatCurrency(selectedPeriod.total_gross)}</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700 }}>Total Deductions</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--danger)' }}>-{formatCurrency(selectedPeriod.total_deductions)}</div>
-              </div>
-              <div style={{ background: '#ffffff', padding: '0.5rem 1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--primary)', fontWeight: 800 }}>Total Net Payable</div>
-                <div style={{ fontSize: '1.35rem', fontWeight: 900, color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>
-                  {formatCurrency(selectedPeriod.total_net)}
+            {isAdminOrHr ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+                <div>
+                  <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700 }}>Total Gross</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)' }}>{formatCurrency(selectedPeriod.total_gross)}</div>
                 </div>
-              </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700 }}>Total Deductions</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--danger)' }}>-{formatCurrency(selectedPeriod.total_deductions)}</div>
+                </div>
+                <div style={{ background: '#ffffff', padding: '0.5rem 1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--primary)', fontWeight: 800 }}>Total Net Payable</div>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 900, color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>
+                    {formatCurrency(selectedPeriod.total_net)}
+                  </div>
+                </div>
 
-              {isAdminOrHr && selectedPeriod.status !== 'Paid' && (
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  {selectedPeriod.status === 'Draft' || selectedPeriod.status === 'Processing' ? (
-                    <button className="btn btn-primary btn-sm" onClick={() => handleStatusChange('Approved')}>
-                      <CheckCircle size={14} /> Approve Payroll
-                    </button>
-                  ) : (
-                    <button className="btn btn-success btn-sm" onClick={() => handleStatusChange('Paid')}>
-                      <DollarSign size={14} /> Disburse & Mark Paid
-                    </button>
-                  )}
+                {selectedPeriod.status !== 'Paid' && (
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    {selectedPeriod.status === 'Draft' || selectedPeriod.status === 'Processing' ? (
+                      <button className="btn btn-primary btn-sm" onClick={() => handleStatusChange('Approved')}>
+                        <CheckCircle size={14} /> Approve Payroll
+                      </button>
+                    ) : (
+                      <button className="btn btn-success btn-sm" onClick={() => handleStatusChange('Paid')}>
+                        <DollarSign size={14} /> Disburse & Mark Paid
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : payslips.length > 0 ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
+                <div>
+                  <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700 }}>My Gross Earnings</div>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                    {formatCurrency(payslips[0].total_earnings || payslips[0].gross_salary || payslips[0].basic_salary)}
+                  </div>
                 </div>
-              )}
-            </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700 }}>My Deductions</div>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--danger)' }}>
+                    -{formatCurrency(payslips[0].total_deductions)}
+                  </div>
+                </div>
+                <div style={{ background: '#ffffff', padding: '0.45rem 0.95rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--primary)', fontWeight: 800 }}>My Net Salary</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#059669', fontFamily: 'var(--font-display)' }}>
+                    {formatCurrency(payslips[0].net_salary)}
+                  </div>
+                </div>
+                <button className="btn btn-primary btn-sm" onClick={() => openPayslip(payslips[0].id)}>
+                  <Printer size={14} /> View / Print My Payslip
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
       )}

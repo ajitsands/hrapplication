@@ -28,7 +28,7 @@ export const Navbar = ({ activeTab, setActiveTab, expiryAlertCount = 0 }) => {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, role: 'all' },
     { id: 'employees', label: 'Employees & Vault', icon: Users, role: 'admin_hr', badge: expiryAlertCount > 0 ? expiryAlertCount : null },
     { id: 'attendance', label: 'Attendance & Biometrics', icon: Clock, role: 'all' },
-    { id: 'shifts', label: 'Shifts & Rostering', icon: CalendarClock, role: 'all' },
+    { id: 'shifts', label: 'Shifts & Rostering', icon: CalendarClock, role: 'admin_hr' },
     { id: 'payroll', label: 'Payroll & A5 Payslips', icon: Calculator, role: 'all' },
     { id: 'indemnity', label: 'Indemnity & EOSB', icon: Award, role: 'admin_hr' },
     { id: 'leaves', label: 'Leaves & Vacations', icon: CalendarDays, role: 'all' },

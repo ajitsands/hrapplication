@@ -26,6 +26,15 @@ class PayrollController extends Controller {
     
     public function periods(): void {
         $periods = $this->payrollModel->getPeriodsList();
+        
+        // If employee role, mask company-wide aggregates
+        if ($this->authUser && $this->authUser['role'] === 'employee') {
+            $periods = array_map(function($p) {
+                unset($p['total_gross'], $p['total_deductions'], $p['total_net'], $p['total_employees']);
+                return $p;
+            }, $periods);
+        }
+        
         $this->successResponse($periods, 'Payroll periods retrieved');
     }
     
@@ -42,6 +51,11 @@ class PayrollController extends Controller {
         $period = $this->payrollModel->findById($periodId);
         if (!$period) {
             $this->errorResponse('Payroll period not found', 404);
+        }
+        
+        // If employee role, mask company-wide aggregates in period object
+        if ($this->authUser && $this->authUser['role'] === 'employee') {
+            unset($period['total_gross'], $period['total_deductions'], $period['total_net'], $period['total_employees']);
         }
         
         $payslips = $this->payrollModel->getPayslipsByPeriod($periodId, $deptId, $empId);
@@ -74,6 +88,7 @@ class PayrollController extends Controller {
     }
     
     public function calculate(): void {
+        $this->requireAdminOrHr();
         $data = $this->getRequestData();
         $month = (int)($data['month'] ?? date('n'));
         $year = (int)($data['year'] ?? date('Y'));
@@ -317,6 +332,7 @@ class PayrollController extends Controller {
     }
     
     public function updateStatus(array $params): void {
+        $this->requireAdminOrHr();
         $periodId = (int)($params['id'] ?? 0);
         $data = $this->getRequestData();
         $status = $data['status'] ?? 'Approved'; // 'Approved', 'Paid'
