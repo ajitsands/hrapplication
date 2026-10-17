@@ -1,4 +1,7 @@
-# Gulf Enterprise HR & Payroll Solution (Bahrain & GCC Ready)
+# Gulf Enterprise HR & Payroll Solution (Bahrain & GCC Ready) — v2.0
+
+> **Locked Release: Version 2.0 (V2.0)**  
+> Includes SaNDS Lab Cryptographic Licensing Engine, Key Activation Screen, Vendor Lockout Protocols, Live Helpline Popup Integration, Shift Rostering, and Bahrain Smart Card Bridge.
 
 An enterprise-grade, lightweight Human Resource Management & Payroll Solution tailored for the **Gulf Region (Kingdom of Bahrain default & customizable for Saudi Arabia, UAE, Kuwait, Qatar, Oman)**.
 
