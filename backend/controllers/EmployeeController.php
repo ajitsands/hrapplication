@@ -159,18 +159,25 @@ class EmployeeController extends Controller {
         
         $newId = (int)$db->lastInsertId();
         
-        // Auto create employee login if requested
-        if (!empty($data['create_user_account'])) {
-            $username = strtolower($empCode);
-            $rawPass = !empty($data['user_password']) ? $data['user_password'] : 'password123';
-            $passHash = password_hash($rawPass, PASSWORD_BCRYPT);
-            $userEmail = !empty($data['email']) ? $data['email'] : ($username . '@company.com');
-            
-            $userStmt = $db->prepare("INSERT INTO users (employee_id, username, email, password_hash, role, status) VALUES (?, ?, ?, ?, 'employee', 'active')");
-            $userStmt->execute([$newId, $username, $userEmail, $passHash]);
+        // Auto create employee login using CPR as username and initial password with first-login password creation
+        $cprUsername = trim(str_replace([' ', '-'], '', $data['cpr_no']));
+        if (!empty($cprUsername)) {
+            $chk = $db->prepare("SELECT id FROM users WHERE username = ? OR employee_id = ?");
+            $chk->execute([$cprUsername, $newId]);
+            if (!$chk->fetch()) {
+                $rawPass = $cprUsername; // Initial CPR password
+                $passHash = password_hash($rawPass, PASSWORD_BCRYPT);
+                $userEmail = !empty($data['email']) ? trim($data['email']) : ($cprUsername . '@portal.local');
+                
+                $userStmt = $db->prepare("
+                    INSERT INTO users (employee_id, username, email, password_hash, role, status, must_change_password)
+                    VALUES (?, ?, ?, ?, 'employee', 'active', 1)
+                ");
+                $userStmt->execute([$newId, $cprUsername, $userEmail, $passHash]);
+            }
         }
         
-        $this->successResponse(['id' => $newId, 'emp_code' => $empCode, 'profile_photo' => $profilePhoto], 'Employee created and onboarded successfully!', 201);
+        $this->successResponse(['id' => $newId, 'emp_code' => $empCode, 'cpr_username' => $cprUsername, 'profile_photo' => $profilePhoto], 'Employee created and onboarded successfully!', 201);
     }
     
     public function update(array $params): void {

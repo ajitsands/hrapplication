@@ -65,8 +65,14 @@ class Controller {
     }
 
     protected function requireAdmin(): void {
-        if ($this->authUser && $this->authUser['role'] !== 'admin') {
-            $this->errorResponse('Unauthorized. System administrator privileges required.', 403);
+        if ($this->authUser && !in_array($this->authUser['role'], ['admin', 'super_admin', 'superadmin', 'hr'])) {
+            $this->errorResponse('Unauthorized. Administrator privileges required.', 403);
+        }
+    }
+
+    protected function requireSuperAdmin(): void {
+        if (!$this->authUser || !in_array($this->authUser['role'], ['super_admin', 'superadmin'])) {
+            $this->errorResponse('Access denied. Software Vendor / Super Administrator privileges required.', 403);
         }
     }
 }

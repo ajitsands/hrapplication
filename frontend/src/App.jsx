@@ -13,16 +13,82 @@ import { Indemnity } from './pages/Indemnity';
 import { Leaves } from './pages/Leaves';
 import { Loans } from './pages/Loans';
 import { Settings } from './pages/Settings';
+import { VendorControl } from './pages/VendorControl';
 import { Footer } from './components/Footer';
+import { SoftwareKeyScreen } from './components/SoftwareKeyScreen';
+import { LicenseSuspendedScreen } from './components/LicenseSuspendedScreen';
+import { SaNDSLabModal } from './components/SaNDSLabModal';
+import { Modal } from './components/Modal';
 import { api } from './services/api';
+import { KeyRound, Sparkles } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 const AppContent = () => {
-  const { user, loading, showToast } = useAuth();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const { user, loading, showToast, changePassword, logout } = useAuth();
+  const isSuperAdmin = user && (user.role === 'super_admin' || user.role === 'superadmin');
+  const [activeTab, setActiveTab] = useState(isSuperAdmin ? 'vendor_license' : 'dashboard');
   const [expiryAlertCount, setExpiryAlertCount] = useState(0);
 
+  // License & System Status
+  const [licenseStatus, setLicenseStatus] = useState(null);
+  const [isCheckingLicense, setIsCheckingLicense] = useState(true);
+  const [manualKeyScreenRequested, setManualKeyScreenRequested] = useState(false);
+  const [isHelpLineModalOpen, setIsHelpLineModalOpen] = useState(false);
+
+  // Mandatory first login password change state
+  const [forceNewPass, setForceNewPass] = useState('');
+  const [forceConfirmPass, setForceConfirmPass] = useState('');
+  const [isChangingPass, setIsChangingPass] = useState(false);
+
+  const handleForcePasswordChange = async () => {
+    if (!forceNewPass || forceNewPass.length < 6) {
+      showToast('Validation Error', 'Password must be at least 6 characters long.', 'warning');
+      return;
+    }
+    if (forceNewPass !== forceConfirmPass) {
+      showToast('Mismatch', 'Passwords do not match. Please re-enter.', 'warning');
+      return;
+    }
+
+    try {
+      setIsChangingPass(true);
+      const ok = await changePassword(forceNewPass);
+      if (ok) {
+        confetti({ particleCount: 60, spread: 60, origin: { y: 0.6 } });
+        setForceNewPass('');
+        setForceConfirmPass('');
+      }
+    } finally {
+      setIsChangingPass(false);
+    }
+  };
+
+  const checkSystemStatus = async () => {
+    try {
+      setIsCheckingLicense(true);
+      const res = await api.get('/system/license-status');
+      if (res.success && res.data) {
+        setLicenseStatus(res.data);
+      }
+    } catch (err) {
+      if (err.data) {
+        setLicenseStatus(err.data);
+      } else {
+        setLicenseStatus({
+          software_suspended: !!err.software_suspended,
+          superadmin_suspended: false,
+          status: err.software_suspended ? 'suspended' : 'unlicensed',
+          valid: false,
+          message: err.message || 'System status check failed'
+        });
+      }
+    } finally {
+      setIsCheckingLicense(false);
+    }
+  };
+
   const checkExpiries = async () => {
-    if (!user || user.role === 'employee') return;
+    if (!user || user.role === 'employee' || user.role === 'super_admin' || user.role === 'superadmin') return;
     try {
       const res = await api.get('/employees/expiries', { days: 60 });
       if (res.success) {
@@ -35,12 +101,14 @@ const AppContent = () => {
   };
 
   useEffect(() => {
+    checkSystemStatus();
     if (user) {
       checkExpiries();
     }
   }, [user, activeTab]);
 
-  if (loading) {
+  // Loading Screen
+  if (loading || isCheckingLicense) {
     return (
       <div
         style={{
@@ -70,12 +138,118 @@ const AppContent = () => {
     );
   }
 
-  if (!user) {
-    return <Login />;
+  // Determine license states
+  const isSuspended =
+    licenseStatus?.software_suspended ||
+    licenseStatus?.superadmin_suspended ||
+    licenseStatus?.status === 'suspended' ||
+    licenseStatus?.status === 'expired';
+
+  const isUnlicensed = !licenseStatus?.valid && !isSuspended;
+
+  // 1. NON-AUTHENTICATED (OR LOGGED-IN NON-SUPERADMIN BLOCKED) FLOWS
+  // Super Admin can always access the application / vendor control
+  const shouldBlockStandardAccess = !isSuperAdmin;
+
+  // Render view router helper
+  const renderPublicView = () => {
+    // If Software / Superadmin Suspended or Key Expired
+    if (isSuspended && shouldBlockStandardAccess) {
+      if (manualKeyScreenRequested) {
+        return (
+          <SoftwareKeyScreen
+            onActivated={(data) => {
+              setManualKeyScreenRequested(false);
+              showToast('Key Activated', 'License authenticated successfully with SaNDS Lab server!', 'success');
+              checkSystemStatus();
+            }}
+            onOpenHelpLine={() => setIsHelpLineModalOpen(true)}
+            onRefreshStatus={checkSystemStatus}
+            detectedStatus={licenseStatus}
+          />
+        );
+      }
+
+      return (
+        <LicenseSuspendedScreen
+          statusData={licenseStatus}
+          onOpenHelpLine={() => setIsHelpLineModalOpen(true)}
+          onEnterKey={() => setManualKeyScreenRequested(true)}
+          onRefreshStatus={checkSystemStatus}
+        />
+      );
+    }
+
+    // If Key Not Added / Unlicensed
+    if (isUnlicensed && shouldBlockStandardAccess) {
+      return (
+        <SoftwareKeyScreen
+          onActivated={(data) => {
+            setManualKeyScreenRequested(false);
+            showToast('Key Activated', 'License authenticated successfully! You may now sign in.', 'success');
+            checkSystemStatus();
+          }}
+          onOpenHelpLine={() => setIsHelpLineModalOpen(true)}
+          onRefreshStatus={checkSystemStatus}
+          detectedStatus={licenseStatus}
+        />
+      );
+    }
+
+    // If manual key screen explicitly requested while valid
+    if (manualKeyScreenRequested) {
+      return (
+        <SoftwareKeyScreen
+          onActivated={(data) => {
+            setManualKeyScreenRequested(false);
+            showToast('Key Updated', 'License key updated successfully!', 'success');
+            checkSystemStatus();
+          }}
+          onOpenHelpLine={() => setIsHelpLineModalOpen(true)}
+          onRefreshStatus={checkSystemStatus}
+          detectedStatus={licenseStatus}
+        />
+      );
+    }
+
+    // Default when not logged in and license is valid: Standard Login Screen
+    return (
+      <Login
+        onOpenKeyScreen={() => setManualKeyScreenRequested(true)}
+        onOpenHelpLine={() => setIsHelpLineModalOpen(true)}
+      />
+    );
+  };
+
+  // If user is not logged in OR standard user is blocked by license
+  if (!user || (shouldBlockStandardAccess && (isSuspended || isUnlicensed))) {
+    return (
+      <div
+        className="app-container"
+        style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
+      >
+        {renderPublicView()}
+
+        {/* Global Executive Footer with SaNDS Lab Help Line Popup Trigger */}
+        <Footer onOpenHelpLine={() => setIsHelpLineModalOpen(true)} />
+
+        {/* SaNDS Lab Help Line Popup Modal */}
+        <SaNDSLabModal
+          isOpen={isHelpLineModalOpen}
+          onClose={() => setIsHelpLineModalOpen(false)}
+        />
+
+        <ToastContainer />
+      </div>
+    );
   }
 
+  // 2. AUTHENTICATED USER FLOW (Inside Application)
   return (
-    <div className="app-container">
+    <div
+      className="app-container"
+      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
+    >
       {/* Horizontal Executive Topbar & Menu */}
       <Navbar
         activeTab={activeTab}
@@ -84,7 +258,7 @@ const AppContent = () => {
       />
 
       {/* Main Content Area */}
-      <main className="main-content">
+      <main className="main-content" style={{ flex: 1 }}>
         {activeTab === 'dashboard' && <Dashboard setActiveTab={setActiveTab} />}
         {activeTab === 'employees' && <Employees />}
         {activeTab === 'attendance' && <Attendance initialSubTab="daily" />}
@@ -94,10 +268,87 @@ const AppContent = () => {
         {activeTab === 'leaves' && <Leaves />}
         {activeTab === 'loans' && <Loans />}
         {activeTab === 'settings' && <Settings />}
+        {activeTab === 'vendor_license' && <VendorControl />}
       </main>
 
-      {/* Global Executive Footer */}
-      <Footer />
+      {/* Global Executive Footer with SaNDS Lab Help Line Popup Trigger */}
+      <Footer onOpenHelpLine={() => setIsHelpLineModalOpen(true)} />
+
+      {/* SaNDS Lab Help Line Popup Modal */}
+      <SaNDSLabModal
+        isOpen={isHelpLineModalOpen}
+        onClose={() => setIsHelpLineModalOpen(false)}
+      />
+
+      {/* MANDATORY FIRST-TIME PASSWORD SETUP MODAL */}
+      {user?.must_change_password && (
+        <Modal
+          isOpen={true}
+          onClose={() => {}}
+          title="First-Time Account Activation: Set Your Password"
+          size="sm"
+          footer={
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+              <button type="button" className="btn btn-secondary btn-sm" onClick={logout}>
+                Sign Out
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleForcePasswordChange}
+                disabled={isChangingPass}
+              >
+                <KeyRound size={16} />
+                {isChangingPass ? 'Saving Password...' : 'Save Password & Enter'}
+              </button>
+            </div>
+          }
+        >
+          <div>
+            <div
+              style={{
+                marginBottom: '1rem',
+                padding: '0.85rem',
+                background: '#eff6ff',
+                border: '1px solid #bfdbfe',
+                borderRadius: '8px',
+                fontSize: '0.825rem',
+                color: '#1e40af',
+                lineHeight: 1.4
+              }}
+            >
+              <strong>Welcome, {user.first_name || user.username}!</strong>
+              <div style={{ marginTop: '0.25rem' }}>
+                As an employee accessing the portal for the first time, please create your personal password to secure your account.
+              </div>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '1rem' }}>
+              <label className="form-label required">Create New Password</label>
+              <input
+                type="password"
+                className="form-control"
+                placeholder="At least 6 characters..."
+                value={forceNewPass}
+                onChange={(e) => setForceNewPass(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '0.5rem' }}>
+              <label className="form-label required">Confirm New Password</label>
+              <input
+                type="password"
+                className="form-control"
+                placeholder="Re-enter new password..."
+                value={forceConfirmPass}
+                onChange={(e) => setForceConfirmPass(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+        </Modal>
+      )}
 
       <ToastContainer />
     </div>

@@ -15,12 +15,14 @@ import {
   LogOut,
   Bell,
   Globe2,
-  Sparkles
+  Sparkles,
+  ShieldCheck
 } from 'lucide-react';
 
 export const Navbar = ({ activeTab, setActiveTab, expiryAlertCount = 0 }) => {
   const { user, logout, settings } = useAuth();
-  const isAdminOrHr = user && (user.role === 'admin' || user.role === 'hr');
+  const isSuperAdmin = user && (user.role === 'super_admin' || user.role === 'superadmin');
+  const isAdminOrHr = user && (user.role === 'admin' || user.role === 'hr' || isSuperAdmin);
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, role: 'all' },
@@ -31,13 +33,15 @@ export const Navbar = ({ activeTab, setActiveTab, expiryAlertCount = 0 }) => {
     { id: 'indemnity', label: 'Indemnity & EOSB', icon: Award, role: 'admin_hr' },
     { id: 'leaves', label: 'Leaves & Vacations', icon: CalendarDays, role: 'all' },
     { id: 'loans', label: 'Loans & Advances', icon: Coins, role: 'all' },
-    { id: 'settings', label: 'Settings & Rules', icon: Settings, role: 'admin' },
+    { id: 'settings', label: 'Settings & Rules', icon: Settings, role: 'admin_hr' },
+    { id: 'vendor_license', label: 'Vendor & Software Key', icon: ShieldCheck, role: 'super_admin_only' },
   ];
 
   const visibleMenuItems = menuItems.filter((item) => {
+    if (item.role === 'super_admin_only') return isSuperAdmin;
     if (item.role === 'all') return true;
     if (item.role === 'admin_hr') return isAdminOrHr;
-    if (item.role === 'admin') return user && user.role === 'admin';
+    if (item.role === 'admin') return isAdminOrHr;
     return false;
   });
 
@@ -113,9 +117,23 @@ export const Navbar = ({ activeTab, setActiveTab, expiryAlertCount = 0 }) => {
                 {user?.first_name ? `${user.first_name} ${user.last_name}` : user?.username}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                <span className={`badge ${user?.role === 'admin' ? 'badge-pink' : user?.role === 'hr' ? 'badge-info' : 'badge-primary'}`} style={{ fontSize: '0.625rem', padding: '0.1rem 0.45rem' }}>
-                  {user?.role?.toUpperCase()}
-                </span>
+                {isSuperAdmin ? (
+                  <span className="badge" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)', color: '#ffffff', fontSize: '0.625rem', padding: '0.15rem 0.55rem', fontWeight: 800, letterSpacing: '0.04em' }}>
+                    SOFTWARE VENDOR
+                  </span>
+                ) : user?.role === 'admin' ? (
+                  <span className="badge badge-pink" style={{ fontSize: '0.625rem', padding: '0.1rem 0.45rem', fontWeight: 800 }}>
+                    ADMIN
+                  </span>
+                ) : user?.role === 'hr' ? (
+                  <span className="badge badge-info" style={{ fontSize: '0.625rem', padding: '0.1rem 0.45rem', fontWeight: 800 }}>
+                    HR ADMIN
+                  </span>
+                ) : (
+                  <span className="badge badge-primary" style={{ fontSize: '0.625rem', padding: '0.1rem 0.45rem', fontWeight: 700 }}>
+                    EMPLOYEE ESS
+                  </span>
+                )}
               </div>
             </div>
           </div>

@@ -42,9 +42,9 @@ echo [4/4] Starting Gulf HR Solution Bahrain Smart Card Bridge on Port 5050...
 if exist "%~dp0SaNDSLabCardBridge\BahrainCardBridge.exe" (
     cd /d "%~dp0SaNDSLabCardBridge"
     start "Gulf HR Smart Card Bridge (Port 5050)" "%~dp0SaNDSLabCardBridge\BahrainCardBridge.exe"
-) else if exist "%~dp0BahrainCardBridge\BahrainCardBridge.exe" (
-    cd /d "%~dp0BahrainCardBridge"
-    start "Gulf HR Smart Card Bridge (Port 5050)" "%~dp0BahrainCardBridge\BahrainCardBridge.exe"
+) else if exist "%~dp0SaNDSLabCardBridge\BahrainCardBridge.exe" (
+    cd /d "%~dp0SaNDSLabCardBridge"
+    start "Gulf HR Smart Card Bridge (Port 5050)" "%~dp0SaNDSLabCardBridge\BahrainCardBridge.exe"
 ) else (
     echo [ERROR] Could not find BahrainCardBridge.exe in "%~dp0SaNDSLabCardBridge".
     echo Please ensure the DLL package is extracted into the SaNDSLabCardBridge folder!

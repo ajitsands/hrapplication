@@ -23,7 +23,7 @@ import {
 
 export const MonthlyAttendanceReport = () => {
   const { showToast, user, settings } = useAuth();
-  const isAdminOrHr = user && (user.role === 'admin' || user.role === 'hr');
+  const isAdminOrHr = user && (user.role === 'admin' || user.role === 'hr' || user.role === 'super_admin' || user.role === 'superadmin');
 
   const weeklyOffSetting = settings?.weekly_off_days || 'Friday,Saturday';
   const dayNameToIndex = {

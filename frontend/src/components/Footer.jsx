@@ -3,18 +3,28 @@
 import React, { useState } from 'react';
 import { SaNDSLabModal } from './SaNDSLabModal';
 import { UserManualModal } from './UserManualModal';
+import { useAuth } from '../context/AuthContext';
 import {
   BookOpen,
   Sparkles,
   ShieldCheck,
-  MessageCircle,
+  PhoneCall,
+  Headphones,
   HelpCircle
 } from 'lucide-react';
 
-export const Footer = () => {
-  const [isSandsModalOpen, setIsSandsModalOpen] = useState(false);
+export const Footer = ({ onOpenHelpLine }) => {
+  const [internalModalOpen, setInternalModalOpen] = useState(false);
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
   const currentYear = new Date().getFullYear();
+
+  const handleHelpLineClick = () => {
+    if (onOpenHelpLine) {
+      onOpenHelpLine();
+    } else {
+      setInternalModalOpen(true);
+    }
+  };
 
   return (
     <>
@@ -26,7 +36,7 @@ export const Footer = () => {
           borderImage: 'linear-gradient(90deg, #2563eb, #ec4899, #8b5cf6) 1',
           color: '#ffffff',
           padding: '0.9rem 1.5rem',
-          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.15)',
+          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.25)',
           zIndex: 40,
           position: 'relative'
         }}
@@ -65,46 +75,56 @@ export const Footer = () => {
             </span>
           </div>
 
-          {/* CENTER: ENGINEERED BY SANDS LAB (CLICKABLE POPUP) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-            <span style={{ color: '#94a3b8', fontWeight: 500 }}>Engineered by</span>
+          {/* CENTER: SaNDS Lab Help Line (CLICKABLE POPUP TRIGGER) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <button
               type="button"
-              onClick={() => setIsSandsModalOpen(true)}
+              onClick={handleHelpLineClick}
               style={{
-                background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.25), rgba(236, 72, 153, 0.25))',
-                border: '1px solid rgba(236, 72, 153, 0.5)',
+                background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.35), rgba(236, 72, 153, 0.35))',
+                border: '1.5px solid #ec4899',
                 color: '#ffffff',
-                padding: '0.35rem 0.85rem',
-                borderRadius: 'var(--radius-full, 9999px)',
+                padding: '0.4rem 1rem',
+                borderRadius: '9999px',
                 cursor: 'pointer',
                 fontWeight: 800,
                 fontSize: '0.825rem',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '0.4rem',
-                boxShadow: '0 2px 10px rgba(236, 72, 153, 0.25)',
+                gap: '0.5rem',
+                boxShadow: '0 2px 14px rgba(236, 72, 153, 0.35)',
                 transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.boxShadow = '0 4px 15px rgba(236, 72, 153, 0.45)';
-                e.currentTarget.style.borderColor = '#ec4899';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(236, 72, 153, 0.55)';
+                e.currentTarget.style.borderColor = '#f472b6';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 10px rgba(236, 72, 153, 0.25)';
-                e.currentTarget.style.borderColor = 'rgba(236, 72, 153, 0.5)';
+                e.currentTarget.style.boxShadow = '0 2px 14px rgba(236, 72, 153, 0.35)';
+                e.currentTarget.style.borderColor = '#ec4899';
               }}
             >
-              <Sparkles size={14} color="#f472b6" />
-              <span style={{ background: 'linear-gradient(135deg, #93c5fd, #fbcfe8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                SaNDS Lab
-              </span>
+              <span
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: '#22c55e',
+                  boxShadow: '0 0 8px #22c55e',
+                  display: 'inline-block'
+                }}
+              />
+              <PhoneCall size={14} color="#f472b6" />
+              <span>SaNDS Lab Help Line:</span>
+              <strong style={{ background: 'linear-gradient(135deg, #93c5fd, #fbcfe8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                +973 35078079
+              </strong>
             </button>
           </div>
 
-          {/* RIGHT CORNER: USER MANUAL BUTTON */}
+          {/* RIGHT: USER MANUAL BUTTON */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <button
               type="button"
@@ -114,7 +134,7 @@ export const Footer = () => {
                 color: '#ffffff',
                 border: 'none',
                 padding: '0.45rem 1rem',
-                borderRadius: 'var(--radius-md, 8px)',
+                borderRadius: '8px',
                 cursor: 'pointer',
                 fontWeight: 700,
                 fontSize: '0.825rem',
@@ -141,7 +161,7 @@ export const Footer = () => {
       </footer>
 
       {/* POPUP MODALS */}
-      <SaNDSLabModal isOpen={isSandsModalOpen} onClose={() => setIsSandsModalOpen(false)} />
+      <SaNDSLabModal isOpen={internalModalOpen} onClose={() => setInternalModalOpen(false)} />
       <UserManualModal isOpen={isManualModalOpen} onClose={() => setIsManualModalOpen(false)} />
     </>
   );

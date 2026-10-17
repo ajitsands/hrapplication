@@ -77,7 +77,11 @@ export const api = {
       const data = await res.json();
       
       if (!res.ok) {
-        throw new Error(data.message || 'API request failed');
+        const error = new Error(data.message || 'API request failed');
+        error.status = res.status;
+        error.software_suspended = res.status === 423 || !!data.software_suspended;
+        error.data = data;
+        throw error;
       }
       return data;
     } catch (err) {
@@ -87,7 +91,13 @@ export const api = {
   },
 
   get(endpoint, params = {}) {
-    const query = new URLSearchParams(params).toString();
+    const cleanParams = {};
+    for (const [k, v] of Object.entries(params)) {
+      if (v !== undefined && v !== null && v !== '') {
+        cleanParams[k] = v;
+      }
+    }
+    const query = new URLSearchParams(cleanParams).toString();
     const url = query ? `${endpoint}?${query}` : endpoint;
     return this.request(url, { method: 'GET' });
   },

@@ -83,6 +83,44 @@ class AuthMiddleware {
             exit();
         }
 
+        // Check if software has been suspended by vendor or key expired/unlicensed (Super Admin bypasses all locks)
+        if (!in_array($user['role'], ['super_admin', 'superadmin'])) {
+            // Check if superadmin is suspended
+            $stmtSa = $db->query("SELECT status FROM users WHERE role IN ('super_admin', 'superadmin') LIMIT 1");
+            $saUser = $stmtSa ? $stmtSa->fetch(PDO::FETCH_ASSOC) : null;
+            $superadminSuspended = ($saUser && $saUser['status'] !== 'active');
+
+            $licService = new \App\Services\LicenseService();
+            $licStatus = $licService->verifyLocalLicense();
+
+            if ($superadminSuspended || !empty($licStatus['software_suspended'])) {
+                http_response_code(423); // 423 Locked
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'software_suspended' => true,
+                    'status' => 'suspended',
+                    'superadmin_suspended' => $superadminSuspended,
+                    'message' => 'Software access suspended. Key expired. Please contact your vendor SaNDS Lab Help Line (+973 35078079).',
+                    'vendor_help_line' => '+973 35078079'
+                ]);
+                exit();
+            }
+
+            if (!$licStatus['valid']) {
+                http_response_code(423); // 423 Locked
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'license_required' => true,
+                    'status' => $licStatus['status'] ?? 'unlicensed',
+                    'message' => $licStatus['message'] ?: 'Software License Key is not added or expired. Contact your vendor SaNDS Lab Help Line (+973 35078079).',
+                    'vendor_help_line' => '+973 35078079'
+                ]);
+                exit();
+            }
+        }
+
         return $user;
     }
 }

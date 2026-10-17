@@ -24,7 +24,7 @@ import {
 
 export const ShiftRosterCalendar = () => {
   const { showToast, user, settings } = useAuth();
-  const isAdminOrHr = user && (user.role === 'admin' || user.role === 'hr');
+  const isAdminOrHr = user && (user.role === 'admin' || user.role === 'hr' || user.role === 'super_admin' || user.role === 'superadmin');
 
   const weeklyOffSetting = settings?.weekly_off_days || 'Friday,Saturday';
   const dayNameToIndex = { 'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6 };

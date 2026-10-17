@@ -17,7 +17,7 @@ import confetti from 'canvas-confetti';
 
 export const Leaves = () => {
   const { user, formatDate, showToast, confirmAction } = useAuth();
-  const isAdminOrHr = user && (user.role === 'admin' || user.role === 'hr');
+  const isAdminOrHr = user && (user.role === 'admin' || user.role === 'hr' || user.role === 'super_admin' || user.role === 'superadmin');
 
   const [leaves, setLeaves] = useState([]);
   const [leaveTypes, setLeaveTypes] = useState([]);

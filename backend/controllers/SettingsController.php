@@ -21,6 +21,7 @@ class SettingsController extends Controller {
     }
     
     public function update(): void {
+        $this->requireAdminOrHr();
         $data = $this->getRequestData();
         $this->settingModel->updateSettings($data);
         $updated = $this->settingModel->getSettings();
@@ -37,6 +38,7 @@ class SettingsController extends Controller {
     }
     
     public function addHoliday(): void {
+        $this->requireAdminOrHr();
         $data = $this->getRequestData();
         if (empty($data['name']) || empty($data['holiday_date'])) {
             $this->errorResponse('Holiday name and date are required');

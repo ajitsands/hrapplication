@@ -4,10 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { Modal } from '../components/Modal';
+import { UserManagement } from '../components/UserManagement';
 import {
   Building,
   Globe2,
   ShieldAlert,
+  ShieldCheck,
   CalendarDays,
   Clock,
   Calendar,
@@ -131,6 +133,7 @@ export const Settings = () => {
 
   const tabs = [
     { id: 'company', label: 'Company Info', icon: Building, badge: null },
+    { id: 'users', label: 'User & Access Control', icon: ShieldCheck, badge: null },
     { id: 'regional', label: 'Regional & Currency', icon: Globe2, badge: formData.country_code || 'BH' },
     { id: 'gosi', label: 'GOSI & LMRA Rules', icon: ShieldAlert, badge: null },
     { id: 'weekly_off', label: 'Weekly Rest Days', icon: CalendarDays, badge: `${selectedDaysList.length} Off` },
@@ -147,21 +150,23 @@ export const Settings = () => {
       {/* Page Header with Persistent Save Button */}
       <div className="page-header" style={{ marginBottom: '1.25rem' }}>
         <div className="page-title-group">
-          <h2>Gulf System Settings &amp; Labor Rules</h2>
-          <p>Configurable Bahrain &amp; GCC regional rules, social security (GOSI), LMRA fees, OT multipliers, and EOSB formulas</p>
+          <h2>Gulf System Settings &amp; Access Rules</h2>
+          <p>Configurable Bahrain &amp; GCC regional rules, portal user accounts, social security (GOSI), LMRA fees, and overtime formulas</p>
         </div>
 
         <div className="header-action-group">
-          <button
-            type="button"
-            className="btn btn-gold btn-md"
-            onClick={handleSubmitSettings}
-            disabled={isSaving}
-            style={{ minWidth: '170px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 700 }}
-          >
-            <Save size={16} />
-            {isSaving ? 'Saving Changes...' : 'Save All Settings'}
-          </button>
+          {activeTab !== 'users' && (
+            <button
+              type="button"
+              className="btn btn-gold btn-md"
+              onClick={handleSubmitSettings}
+              disabled={isSaving}
+              style={{ minWidth: '170px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 700 }}
+            >
+              <Save size={16} />
+              {isSaving ? 'Saving Changes...' : 'Save All Settings'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -227,12 +232,16 @@ export const Settings = () => {
         })}
       </div>
 
-      {/* MAIN FORM CONTAINER */}
-      <form onSubmit={handleSubmitSettings}>
-        {/* ========================================================= */}
-        {/* TAB 1: COMPANY PROFILE */}
-        {/* ========================================================= */}
-        {activeTab === 'company' && (
+      {/* USER MANAGEMENT TAB */}
+      {activeTab === 'users' && <UserManagement />}
+
+      {/* MAIN SETTINGS FORM CONTAINER */}
+      {activeTab !== 'users' && (
+        <form onSubmit={handleSubmitSettings}>
+          {/* ========================================================= */}
+          {/* TAB 1: COMPANY PROFILE */}
+          {/* ========================================================= */}
+          {activeTab === 'company' && (
           <div className="card" style={{ marginTop: 0 }}>
             <div className="card-header">
               <div className="card-title">
@@ -788,6 +797,7 @@ export const Settings = () => {
           </div>
         </div>
       </form>
+      )}
 
       {/* ADD HOLIDAY MODAL */}
       <Modal

@@ -22,7 +22,7 @@ import {
 
 export const ShiftMaster = () => {
   const { showToast, user } = useAuth();
-  const isAdminOrHr = user && (user.role === 'admin' || user.role === 'hr');
+  const isAdminOrHr = user && (user.role === 'admin' || user.role === 'hr' || user.role === 'super_admin' || user.role === 'superadmin');
 
   const [shifts, setShifts] = useState([]);
   const [departments, setDepartments] = useState([]);

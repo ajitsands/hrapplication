@@ -76,6 +76,35 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const firstLoginSetup = async (cpr_no, new_password) => {
+    try {
+      const res = await api.post('/auth/first-login-setup', { cpr_no, new_password });
+      if (res.success) {
+        api.setToken(res.data.token);
+        setUser(res.data.user);
+        showToast('Password Created', `Welcome to the portal, ${res.data.user.first_name || res.data.user.username}!`, 'success');
+        return true;
+      }
+    } catch (err) {
+      showToast('Setup Failed', err.message || 'Unable to setup password', 'error');
+      return false;
+    }
+  };
+
+  const changePassword = async (new_password, current_password = '') => {
+    try {
+      const res = await api.post('/auth/change-password', { new_password, current_password });
+      if (res.success) {
+        setUser((prev) => (prev ? { ...prev, must_change_password: false } : null));
+        showToast('Password Updated', 'Your new password has been set successfully!', 'success');
+        return true;
+      }
+    } catch (err) {
+      showToast('Error', err.message || 'Failed to update password', 'error');
+      return false;
+    }
+  };
+
   const logout = async () => {
     try {
       await api.post('/auth/logout');
@@ -160,7 +189,9 @@ export const AuthProvider = ({ children }) => {
         removeToast,
         confirmAction,
         formatCurrency,
-        formatDate
+        formatDate,
+        firstLoginSetup,
+        changePassword
       }}
     >
       {children}

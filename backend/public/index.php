@@ -39,7 +39,10 @@ $router = new Router();
 // 1. AUTH & PUBLIC ROUTES
 // ==========================================
 $router->post('/api/auth/login', ['App\Controllers\AuthController', 'login']);
+$router->post('/api/auth/first-login-setup', ['App\Controllers\AuthController', 'firstLoginSetup']);
 $router->get('/api/settings/public', ['App\Controllers\SettingsController', 'get']);
+$router->get('/api/system/license-status', ['App\Controllers\VendorController', 'publicStatus']);
+$router->post('/api/system/activate-key', ['App\Controllers\VendorController', 'publicActivateKey']);
 $router->get('/api/attendance/template', ['App\Controllers\AttendanceController', 'template']);
 $router->get('/api/download/card-bridge', ['App\Controllers\EmployeeController', 'downloadCardBridge']);
 
@@ -48,8 +51,26 @@ $router->get('/api/download/card-bridge', ['App\Controllers\EmployeeController',
 // ==========================================
 $auth = [AuthMiddleware::class];
 
+// Software Vendor & License Control (Super Admin Exclusive)
+$router->get('/api/vendor/license-info', ['App\Controllers\VendorController', 'getLicenseInfo'], $auth);
+$router->post('/api/vendor/activate-license', ['App\Controllers\VendorController', 'activateLicense'], $auth);
+$router->post('/api/vendor/toggle-suspension', ['App\Controllers\VendorController', 'toggleSuspension'], $auth);
+$router->post('/api/vendor/delete-transactional-data', ['App\Controllers\VendorController', 'deleteTransactionalData'], $auth);
+$router->post('/api/vendor/change-password', ['App\Controllers\VendorController', 'changePassword'], $auth);
+
 $router->get('/api/auth/profile', ['App\Controllers\AuthController', 'profile'], $auth);
+$router->post('/api/auth/change-password', ['App\Controllers\AuthController', 'changePassword'], $auth);
 $router->post('/api/auth/logout', ['App\Controllers\AuthController', 'logout'], $auth);
+
+// User & Role Access Management (Admin & Super Admin)
+$router->get('/api/users', ['App\Controllers\UserController', 'index'], $auth);
+$router->post('/api/users', ['App\Controllers\UserController', 'store'], $auth);
+$router->get('/api/users/{id}', ['App\Controllers\UserController', 'show'], $auth);
+$router->put('/api/users/{id}', ['App\Controllers\UserController', 'update'], $auth);
+$router->put('/api/users/{id}/status', ['App\Controllers\UserController', 'toggleStatus'], $auth);
+$router->post('/api/users/{id}/reset-password', ['App\Controllers\UserController', 'resetPassword'], $auth);
+$router->delete('/api/users/{id}', ['App\Controllers\UserController', 'destroy'], $auth);
+$router->post('/api/employees/{id}/reset-password', ['App\Controllers\UserController', 'resetEmployeePassword'], $auth);
 
 // Dashboard
 $router->get('/api/dashboard/stats', ['App\Controllers\DashboardController', 'stats'], $auth);

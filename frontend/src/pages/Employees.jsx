@@ -5,9 +5,11 @@ import { useAuth } from '../context/AuthContext';
 import { api, getDownloadBridgeUrl, getSetupGuideUrl } from '../services/api';
 import { DataTable } from '../components/DataTable';
 import { Modal } from '../components/Modal';
+import { ResetPasswordModal } from '../components/ResetPasswordModal';
 import {
   Users,
   UserPlus,
+  KeyRound,
   FileText,
   Edit,
   Trash2,
@@ -51,6 +53,21 @@ export const Employees = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isDeptModalOpen, setIsDeptModalOpen] = useState(false);
   const [formTab, setFormTab] = useState('personal');
+  const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] = useState(false);
+  const [targetResetEmployee, setTargetResetEmployee] = useState(null);
+
+  const handleResetEmployeePassword = (emp) => {
+    setTargetResetEmployee({
+      is_employee_direct: true,
+      employee_id: emp.id,
+      username: emp.cpr_no ? emp.cpr_no.trim() : emp.emp_code.toLowerCase(),
+      first_name: emp.first_name,
+      last_name: emp.last_name,
+      cpr_no: emp.cpr_no,
+      role: 'employee'
+    });
+    setIsResetPasswordModalOpen(true);
+  };
 
   // Card Reader State
   const [isReadingCard, setIsReadingCard] = useState(false);
@@ -622,6 +639,14 @@ export const Employees = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
           <button className="btn btn-outline btn-sm" onClick={() => openProfileView(row)} title="View Profile">
             <Eye size={14} />
+          </button>
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() => handleResetEmployeePassword(row)}
+            title="Reset Portal Password (CPR/Custom)"
+            style={{ color: '#2563eb', borderColor: '#bfdbfe', background: '#eff6ff' }}
+          >
+            <KeyRound size={14} />
           </button>
           <button className="btn btn-secondary btn-sm" onClick={() => openDocVault(row)} title="Document & Attachment Vault">
             <Paperclip size={14} />
@@ -1414,11 +1439,13 @@ export const Employees = () => {
               </div>
 
               {!currentEmployee && (
-                <div style={{ marginTop: '1rem', padding: '0.85rem', background: '#f8fafc', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>
-                    <input type="checkbox" name="create_user_account" checked={formData.create_user_account} onChange={handleChange} />
-                    <span>Create employee self-service login account (Username will be Employee Code, Default Password: password123)</span>
-                  </label>
+                <div style={{ marginTop: '1rem', padding: '1rem', background: '#f0fdf4', borderRadius: 'var(--radius-md)', border: '1px solid #bbf7d0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#16a34a', fontWeight: 700, fontSize: '0.875rem' }}>
+                    <KeyRound size={16} /> Automated Employee Portal Account Setup
+                  </div>
+                  <p style={{ margin: '0.35rem 0 0 0', fontSize: '0.825rem', color: '#15803d', lineHeight: 1.4 }}>
+                    No username or password needed during onboarding. The portal account is automatically generated using their <strong>Bahrain CPR Number ({formData.cpr_no || 'CPR'})</strong> as their username. On their first login, they will be prompted to create their own secure password.
+                  </p>
                 </div>
               )}
             </div>
@@ -1686,6 +1713,14 @@ export const Employees = () => {
           </div>
         </form>
       </Modal>
+
+      {/* DIRECT EMPLOYEE PASSWORD RESET MODAL */}
+      <ResetPasswordModal
+        isOpen={isResetPasswordModalOpen}
+        onClose={() => setIsResetPasswordModalOpen(false)}
+        targetUser={targetResetEmployee}
+        onSuccess={() => fetchData()}
+      />
     </div>
   );
 };

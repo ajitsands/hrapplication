@@ -17,7 +17,7 @@ import confetti from 'canvas-confetti';
 
 export const Loans = () => {
   const { user, formatCurrency, showToast, confirmAction, settings } = useAuth();
-  const isAdminOrHr = user && (user.role === 'admin' || user.role === 'hr');
+  const isAdminOrHr = user && (user.role === 'admin' || user.role === 'hr' || user.role === 'super_admin' || user.role === 'superadmin');
 
   const [loans, setLoans] = useState([]);
   const [employees, setEmployees] = useState([]);
