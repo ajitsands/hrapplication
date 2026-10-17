@@ -58,7 +58,10 @@ export const VendorControl = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
+  const isSuperAdmin = user && (user.role === 'super_admin' || user.role === 'superadmin');
+
   const fetchVendorInfo = async () => {
+    if (!isSuperAdmin) return;
     try {
       setLoading(true);
       const res = await api.get('/vendor/license-info');
@@ -82,8 +85,21 @@ export const VendorControl = () => {
   };
 
   useEffect(() => {
-    fetchVendorInfo();
-  }, []);
+    if (isSuperAdmin) {
+      fetchVendorInfo();
+    } else {
+      setLoading(false);
+    }
+  }, [isSuperAdmin]);
+
+  if (!isSuperAdmin) {
+    return (
+      <div style={{ padding: '3rem 1.5rem', textAlign: 'center', color: '#94a3b8' }}>
+        <h3 style={{ color: '#0f172a', fontWeight: 800 }}>Vendor Control Restricted</h3>
+        <p>Software Vendor &amp; Super Administrator privileges are required to view this area.</p>
+      </div>
+    );
+  }
 
   // Handle License Activation
   const handleActivateLicense = async (e) => {

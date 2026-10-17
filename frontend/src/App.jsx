@@ -29,6 +29,24 @@ const AppContent = () => {
   const [activeTab, setActiveTab] = useState(isSuperAdmin ? 'vendor_license' : 'dashboard');
   const [expiryAlertCount, setExpiryAlertCount] = useState(0);
 
+  // Automatically ensure activeTab is valid for the current logged-in role
+  useEffect(() => {
+    if (user) {
+      if (isSuperAdmin) {
+        if (!activeTab || activeTab === 'dashboard') {
+          setActiveTab('vendor_license');
+        }
+      } else {
+        // Normal admin or employee must never be on vendor_license
+        if (activeTab === 'vendor_license') {
+          setActiveTab('dashboard');
+        }
+      }
+    } else {
+      setActiveTab('dashboard');
+    }
+  }, [user?.id, isSuperAdmin]);
+
   // License & System Status
   const [licenseStatus, setLicenseStatus] = useState(null);
   const [isCheckingLicense, setIsCheckingLicense] = useState(true);
@@ -268,7 +286,9 @@ const AppContent = () => {
         {activeTab === 'leaves' && <Leaves />}
         {activeTab === 'loans' && <Loans />}
         {activeTab === 'settings' && <Settings />}
-        {activeTab === 'vendor_license' && <VendorControl />}
+        {activeTab === 'vendor_license' && (
+          isSuperAdmin ? <VendorControl /> : <Dashboard setActiveTab={setActiveTab} />
+        )}
       </main>
 
       {/* Global Executive Footer with SaNDS Lab Help Line Popup Trigger */}
