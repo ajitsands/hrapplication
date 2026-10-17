@@ -37,7 +37,31 @@ try {
         }
     }
 
-    // 2. Ensure superadmin user exists: superadmin@sandslab.com / S@nds1@b
+    // 2. Ensure `users` table columns exist (must_change_password, api_token, last_login)
+    $userColsStmt = $db->query("SHOW COLUMNS FROM users");
+    $userCols = $userColsStmt->fetchAll(PDO::FETCH_COLUMN);
+
+    $userColumns = [
+        'must_change_password' => "TINYINT(1) NOT NULL DEFAULT 0",
+        'api_token' => "VARCHAR(255) NULL DEFAULT NULL",
+        'last_login' => "DATETIME NULL DEFAULT NULL"
+    ];
+
+    foreach ($userColumns as $col => $def) {
+        if (!in_array($col, $userCols)) {
+            $db->exec("ALTER TABLE users ADD COLUMN `$col` $def");
+            echo "Added column `users`.`$col`\n";
+        }
+    }
+
+    // Ensure `role` ENUM includes super_admin
+    try {
+        $db->exec("ALTER TABLE users MODIFY COLUMN `role` ENUM('super_admin', 'admin', 'hr', 'employee') NOT NULL DEFAULT 'employee'");
+    } catch (Exception $e) {
+        // ignore if already configured or VARCHAR
+    }
+
+    // 3. Ensure superadmin user exists: superadmin@sandslab.com / S@nds1@b
     $stmt = $db->prepare("SELECT id, username, email, role, password_hash FROM users WHERE username = 'superadmin@sandslab.com' OR email = 'superadmin@sandslab.com' LIMIT 1");
     $stmt->execute();
     $superadmin = $stmt->fetch(PDO::FETCH_ASSOC);
